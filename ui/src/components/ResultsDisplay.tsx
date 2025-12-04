@@ -178,50 +178,58 @@ export default function ResultsDisplay({
         >
           <div className="grid md:grid-cols-2 gap-4">
             {report.outgoing_email && (
-              <div className="glass-light rounded-xl p-4">
+              <div className="glass-light rounded-xl p-5">
                 <h4 className="font-semibold text-blue-400 mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-400" />
                   Outgoing Request
                 </h4>
-                <p className="text-sm text-slate-400 mb-1">
-                  To:{" "}
-                  <span className="text-slate-300">
-                    {report.outgoing_email.recipient_email}
-                  </span>
-                </p>
-                <p className="text-sm text-slate-400 mb-3">
-                  Subject:{" "}
-                  <span className="text-slate-300">
-                    {report.outgoing_email.subject}
-                  </span>
-                </p>
-                <pre className="text-xs text-slate-400 whitespace-pre-wrap bg-slate-800/50 rounded-lg p-3 max-h-40 overflow-y-auto">
-                  {report.outgoing_email.body}
-                </pre>
+                <div className="mb-4 space-y-1">
+                  <p className="text-sm text-slate-400">
+                    To:{" "}
+                    <span className="text-white font-medium">
+                      {report.outgoing_email.recipient_email}
+                    </span>
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    Subject:{" "}
+                    <span className="text-white font-medium">
+                      {report.outgoing_email.subject}
+                    </span>
+                  </p>
+                </div>
+                <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/30">
+                  <pre className="text-base text-slate-300 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto">
+                    {report.outgoing_email.body}
+                  </pre>
+                </div>
               </div>
             )}
 
             {report.incoming_email && (
-              <div className="glass-light rounded-xl p-4">
+              <div className="glass-light rounded-xl p-5">
                 <h4 className="font-semibold text-emerald-400 mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   University Reply
                 </h4>
-                <p className="text-sm text-slate-400 mb-1">
-                  From:{" "}
-                  <span className="text-slate-300">
-                    {report.incoming_email.sender_email}
-                  </span>
-                </p>
-                <p className="text-sm text-slate-400 mb-3">
-                  Subject:{" "}
-                  <span className="text-slate-300">
-                    {report.incoming_email.subject}
-                  </span>
-                </p>
-                <pre className="text-xs text-slate-400 whitespace-pre-wrap bg-slate-800/50 rounded-lg p-3 max-h-40 overflow-y-auto">
-                  {report.incoming_email.body}
-                </pre>
+                <div className="mb-4 space-y-1">
+                  <p className="text-sm text-slate-400">
+                    From:{" "}
+                    <span className="text-white font-medium">
+                      {report.incoming_email.sender_email}
+                    </span>
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    Subject:{" "}
+                    <span className="text-white font-medium">
+                      {report.incoming_email.subject}
+                    </span>
+                  </p>
+                </div>
+                <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/30">
+                  <pre className="text-base text-slate-300 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto">
+                    {report.incoming_email.body}
+                  </pre>
+                </div>
               </div>
             )}
           </div>
