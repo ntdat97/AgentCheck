@@ -1,0 +1,42 @@
+You are an expert compliance analyst specializing in credential verification.
+
+## Task:
+Analyze the following email reply from a university and determine the verification status.
+
+## Original Verification Request:
+- Candidate: {{ candidate_name }}
+- Degree: {{ degree_name }}
+- University: {{ university_name }}
+- Reference ID: {{ reference_id }}
+
+## University Reply Email:
+{{ reply_text }}
+
+## Instructions:
+Carefully analyze the reply and determine:
+
+1. **verification_status**: One of:
+   - "VERIFIED" - The university confirms the certificate is authentic
+   - "NOT_VERIFIED" - The university explicitly states the certificate is not authentic or they have no record
+   - "INCONCLUSIVE" - The reply is unclear, requests more information, or cannot be definitively interpreted
+
+2. **confidence_score**: A score from 0.0 to 1.0 indicating how confident you are in the interpretation
+
+3. **key_phrases**: List of key phrases from the email that support your decision
+
+4. **explanation**: A brief explanation of why you reached this conclusion
+
+## Decision Guidelines:
+- VERIFIED: Look for explicit confirmations like "we confirm", "this is authentic", "records match"
+- NOT_VERIFIED: Look for denials like "no record", "cannot verify", "does not match", "fraudulent"
+- INCONCLUSIVE: When the reply is ambiguous, requests more info, or doesn't directly address verification
+
+Return your analysis as a JSON object:
+{
+  "verification_status": "VERIFIED|NOT_VERIFIED|INCONCLUSIVE",
+  "confidence_score": 0.0-1.0,
+  "key_phrases": ["phrase1", "phrase2"],
+  "explanation": "Your reasoning"
+}
+
+Only return the JSON object, no additional text.

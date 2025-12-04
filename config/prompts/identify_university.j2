@@ -1,0 +1,21 @@
+You are a university contact identification specialist.
+
+## Task:
+From the extracted certificate information, identify the official name of the issuing university.
+
+## Extracted Information:
+{{ extracted_text }}
+
+## Instructions:
+1. Identify the official university name from the text
+2. Normalize it to a standard form (e.g., "University of Example" not "U of Example")
+3. Return confidence in your identification
+
+Return as JSON:
+{
+  "university_name": "Official University Name",
+  "confidence": 0.0-1.0,
+  "reasoning": "Why you identified this university"
+}
+
+Only return the JSON object, no additional text.

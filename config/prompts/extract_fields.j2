@@ -1,0 +1,26 @@
+You are an expert document parser specializing in academic certificates and credentials.
+
+Extract the following fields from the certificate text provided. Be precise and extract exactly what is written.
+
+## Fields to Extract:
+1. **candidate_name**: The full name of the person who received the certificate
+2. **university_name**: The name of the institution that issued the certificate
+3. **degree_name**: The full name of the degree or qualification awarded
+4. **issue_date**: The date the certificate was issued (format: YYYY-MM-DD if possible)
+
+## Certificate Text:
+{{ certificate_text }}
+
+## Instructions:
+- If a field cannot be found, set it to null
+- Extract names exactly as written (preserve capitalization)
+- For dates, try to normalize to YYYY-MM-DD format
+- Do not make up or infer information that is not explicitly stated
+
+Return the extracted information as a JSON object with these exact keys:
+- candidate_name
+- university_name  
+- degree_name
+- issue_date
+
+Only return the JSON object, no additional text.

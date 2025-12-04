@@ -1,0 +1,321 @@
+"""
+LLM Client Utility
+Wrapper for OpenAI/Groq API with retry logic and error handling.
+"""
+import os
+import json
+from typing import Optional, Dict, Any, List
+from pathlib import Path
+
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
+from dotenv import load_dotenv
+
+# Import constants from central config
+from api.constants import (
+    DEFAULT_PROVIDER,
+    GROQ_API_BASE_URL,
+    GROQ_DEFAULT_MODEL,
+    GROQ_DEFAULT_VISION_MODEL,
+    OPENAI_DEFAULT_MODEL,
+    OPENAI_DEFAULT_VISION_MODEL,
+    DEFAULT_TEMPERATURE,
+    DEFAULT_MAX_RETRIES,
+    DEFAULT_MAX_TOKENS,
+)
+
+# Load environment variables
+load_dotenv()
+
+
+class LLMClient:
+    """
+    Wrapper for LLM API calls.
+    Supports OpenAI and Groq (OpenAI-compatible) models.
+    """
+    
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        vision_model: Optional[str] = None,
+        temperature: float = DEFAULT_TEMPERATURE,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        provider: Optional[str] = None
+    ):
+        """
+        Initialize LLM client.
+        
+        Args:
+            api_key: API key (defaults to env var based on provider)
+            model: Model to use for text (defaults to env var)
+            vision_model: Model to use for vision/OCR (defaults to env var)
+            temperature: Sampling temperature
+            max_retries: Number of retries on failure
+            provider: 'openai' or 'groq' (defaults to LLM_PROVIDER env var)
+        """
+        self.provider = provider or os.getenv("LLM_PROVIDER", DEFAULT_PROVIDER).lower()
+        
+        # Set API key and base URL based on provider
+        if self.provider == "groq":
+            self.api_key = api_key or os.getenv("GROQ_API_KEY")
+            self.base_url = GROQ_API_BASE_URL
+            self.model = model or os.getenv("GROQ_MODEL", GROQ_DEFAULT_MODEL)
+            self.vision_model = vision_model or os.getenv("GROQ_VISION_MODEL", GROQ_DEFAULT_VISION_MODEL)
+        else:  # openai
+            self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+            self.base_url = None  # Use default OpenAI URL
+            self.model = model or os.getenv("OPENAI_MODEL", OPENAI_DEFAULT_MODEL)
+            self.vision_model = vision_model or os.getenv("OPENAI_VISION_MODEL", OPENAI_DEFAULT_VISION_MODEL)
+        
+        self.temperature = temperature
+        self.max_retries = max_retries
+        
+        if OPENAI_AVAILABLE and self.api_key:
+            if self.base_url:
+                self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+            else:
+                self.client = OpenAI(api_key=self.api_key)
+        else:
+            self.client = None
+    
+    def is_available(self) -> bool:
+        """Check if LLM client is properly configured."""
+        return self.client is not None
+
+    def _is_new_model_format(self) -> bool:
+        """Check if the model uses new API format (max_completion_tokens instead of max_tokens)."""
+        # Models like gpt-5-*, o1-*, o3-* use the new format
+        new_format_prefixes = ("gpt-5", "o1", "o3")
+        return self.model and any(self.model.startswith(prefix) for prefix in new_format_prefixes)
+
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: int = 2000,
+        response_format: Optional[Dict] = None
+    ) -> str:
+        """
+        Get a completion from the LLM.
+        
+        Args:
+            prompt: User prompt
+            system_prompt: System instruction
+            temperature: Override default temperature
+            max_tokens: Maximum tokens in response
+            response_format: Optional response format (e.g., {"type": "json_object"})
+            
+        Returns:
+            LLM response text
+        """
+        if not self.is_available():
+            return self._mock_response(prompt)
+        
+        messages = []
+        
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        
+        messages.append({"role": "user", "content": prompt})
+        
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature or self.temperature,
+        }
+
+        # Use appropriate token parameter based on model
+        if self._is_new_model_format():
+            kwargs["max_completion_tokens"] = max_tokens
+        else:
+            kwargs["max_tokens"] = max_tokens
+        
+        if response_format:
+            kwargs["response_format"] = response_format
+        
+        for attempt in range(self.max_retries):
+            try:
+                response = self.client.chat.completions.create(**kwargs)
+                return response.choices[0].message.content
+            except Exception as e:
+                if attempt == self.max_retries - 1:
+                    raise RuntimeError(f"LLM call failed after {self.max_retries} attempts: {e}")
+                continue
+        
+        return ""
+    
+    def complete_json(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: Optional[float] = None
+    ) -> Dict[str, Any]:
+        """
+        Get a JSON response from the LLM.
+        
+        Args:
+            prompt: User prompt
+            system_prompt: System instruction
+            temperature: Override default temperature
+            
+        Returns:
+            Parsed JSON response
+        """
+        response = self.complete(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            temperature=temperature,
+            response_format={"type": "json_object"}
+        )
+        
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError:
+            # Try to extract JSON from response
+            return self._extract_json(response)
+    
+    def _extract_json(self, text: str) -> Dict[str, Any]:
+        """Extract JSON from text that might have extra content."""
+        # Try to find JSON block
+        import re
+        
+        # Look for JSON in code blocks
+        code_block = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+        if code_block:
+            try:
+                return json.loads(code_block.group(1))
+            except:
+                pass
+        
+        # Try to find raw JSON object
+        json_match = re.search(r'\{.*\}', text, re.DOTALL)
+        if json_match:
+            try:
+                return json.loads(json_match.group())
+            except:
+                pass
+        
+        # Return empty dict if nothing found
+        return {}
+    
+    def extract_text_from_image(self, base64_image: str) -> Optional[str]:
+        """
+        Extract text from an image using Vision API.
+        Used for OCR on scanned PDF certificates.
+        
+        Supports:
+        - OpenAI: gpt-4o, gpt-4o-mini, gpt-4-vision-preview
+        - Groq: llama-3.2-11b-vision-preview, llama-3.2-90b-vision-preview
+        
+        Args:
+            base64_image: Base64 encoded image data
+            
+        Returns:
+            Extracted text or None if failed
+        """
+        if not self.is_available():
+            return None
+        
+        # Get vision-capable model for the provider
+        vision_model = self._get_vision_model()
+        if not vision_model:
+            print(f"No vision model available for provider: {self.provider}")
+            return None
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=vision_model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": """Extract ALL text from this certificate image. 
+Include every piece of visible text exactly as it appears - names, dates, degree titles, university name, signatures, seals, etc.
+Format the output as plain text, preserving the general layout and hierarchy of information.
+Do not add any commentary or explanations, just extract the raw text content."""
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=DEFAULT_MAX_TOKENS,
+                temperature=0.1
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Vision API error ({self.provider}/{vision_model}): {e}")
+            return None
+    
+    def _get_vision_model(self) -> Optional[str]:
+        """
+        Get the vision-capable model for the current provider.
+        
+        Returns:
+            Vision model name from env vars (GROQ_VISION_MODEL or OPENAI_VISION_MODEL)
+        """
+        return self.vision_model
+    
+    def supports_vision(self) -> bool:
+        """Check if the current provider supports vision API."""
+        return self.vision_model is not None
+    
+    def _mock_response(self, prompt: str) -> str:
+        """
+        Provide mock responses when LLM is not available.
+        Useful for testing without API key.
+        """
+        prompt_lower = prompt.lower()
+        
+        # Mock field extraction
+        if "extract" in prompt_lower and "certificate" in prompt_lower:
+            return json.dumps({
+                "candidate_name": "John Smith",
+                "university_name": "University of Example",
+                "degree_name": "Bachelor of Science in Computer Science",
+                "issue_date": "2023-05-15"
+            })
+        
+        # Mock email drafting
+        if "draft" in prompt_lower and "email" in prompt_lower:
+            return json.dumps({
+                "subject": "Verification Request - Certificate Authenticity",
+                "body": "Dear Registrar,\n\nI am writing to request verification of a certificate...\n\nBest regards"
+            })
+        
+        # Mock reply analysis
+        if "analyze" in prompt_lower and "reply" in prompt_lower:
+            return json.dumps({
+                "verification_status": "VERIFIED",
+                "confidence_score": 0.95,
+                "key_phrases": ["confirm", "authentic", "records match"],
+                "explanation": "The university confirmed the certificate is authentic."
+            })
+        
+        # Mock university identification
+        if "identify" in prompt_lower and "university" in prompt_lower:
+            return json.dumps({
+                "university_name": "University of Example",
+                "confidence": 0.9,
+                "reasoning": "Name extracted from certificate header"
+            })
+        
+        # Default mock response
+        return json.dumps({"status": "mock_response", "message": "LLM not configured"})
+
+
+def get_llm_client() -> LLMClient:
+    """Factory function to get configured LLM client."""
+    return LLMClient()

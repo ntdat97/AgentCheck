@@ -1,0 +1,88 @@
+# ===========================================
+# AgentCheck Docker Compose Configuration
+# ===========================================
+# 
+# Usage:
+#   Start all:    docker-compose up -d
+#   Build only:   docker-compose build
+#   View logs:    docker-compose logs -f
+#   Stop:         docker-compose down
+#
+# ===========================================
+
+services:
+  # ===========================================
+  # Main Service - Backend API + React Frontend
+  # ===========================================
+  agentcheck:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: agentcheck
+    ports:
+      - "${API_PORT:-8000}:8000"
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5-nano}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DATA_DIR=/app/data
+      - CONFIG_DIR=/app/config
+    volumes:
+      # Persist data directory
+      - agentcheck-data:/app/data
+      # Mount config for easy updates
+      - ./config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - agentcheck-network
+
+  # ===========================================
+  # Development Service (optional)
+  # ===========================================
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: agentcheck-dev
+    ports:
+      - "8000:8000"
+      - "3000:3000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5-nano}
+      - LOG_LEVEL=DEBUG
+      - DATA_DIR=/app/data
+      - CONFIG_DIR=/app/config
+    volumes:
+      # Mount source code for hot reload
+      - ./api:/app/api
+      - ./config:/app/config
+      - ./tests:/app/tests
+      - agentcheck-data:/app/data
+    profiles:
+      - dev
+    networks:
+      - agentcheck-network
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  agentcheck-data:
+    driver: local
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  agentcheck-network:
+    driver: bridge

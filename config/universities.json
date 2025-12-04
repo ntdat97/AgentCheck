@@ -1,0 +1,31 @@
+{
+  "universities": {
+    "University of Example": {
+      "email": "verification@example.edu",
+      "country": "USA",
+      "verification_department": "Office of the Registrar"
+    },
+    "Global Tech Institute": {
+      "email": "records@gtu.edu",
+      "country": "UK",
+      "verification_department": "Academic Records Office"
+    },
+    "National University of Science": {
+      "email": "verify@nus.edu.sg",
+      "country": "Singapore",
+      "verification_department": "Student Records"
+    },
+    "European Business School": {
+      "email": "credentials@ebs.eu",
+      "country": "Germany",
+      "verification_department": "Examination Office"
+    },
+    "Pacific Institute of Technology": {
+      "email": "registrar@pit.edu.au",
+      "country": "Australia",
+      "verification_department": "Academic Administration"
+    }
+  },
+  "default_response_time_days": 5,
+  "retry_attempts": 3
+}

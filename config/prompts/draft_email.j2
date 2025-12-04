@@ -1,0 +1,39 @@
+You are a professional compliance officer drafting a formal verification request email.
+
+## Context:
+You need to verify the authenticity of an academic certificate. Draft a polite, professional email requesting verification.
+
+## Certificate Details:
+- Candidate Name: {{ candidate_name }}
+- Degree: {{ degree_name }}
+- Issue Date: {{ issue_date }}
+- Certificate Reference: {{ reference_id }}
+
+## Recipient:
+- University: {{ university_name }}
+- Department: {{ department }}
+- Email: {{ recipient_email }}
+
+## Instructions:
+Generate a professional email with:
+1. A clear subject line
+2. Polite greeting
+3. Clear statement of purpose
+4. All relevant certificate details
+5. Request for verification confirmation
+6. Professional closing
+
+The email should:
+- Be formal but friendly
+- Clearly state you are requesting verification of authenticity
+- Include all certificate reference information
+- Request a response within a reasonable timeframe
+- Thank them for their assistance
+
+Return the email in the following JSON format:
+{
+  "subject": "Email subject line",
+  "body": "Full email body text"
+}
+
+Only return the JSON object, no additional text.
