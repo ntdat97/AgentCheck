@@ -89,7 +89,7 @@ class EmailService:
             reference_id: Original verification request reference
             university_name: Name of the university
             university_email: University email address
-            scenario: One of 'verified', 'not_verified', 'inconclusive'
+            scenario: One of 'verified', 'not_verified', 'inconclusive', 'suspicious', 'ambiguous'
             
         Returns:
             IncomingEmail object with simulated reply
@@ -107,9 +107,13 @@ class EmailService:
             reference_id=reference_id
         )
         
+        # Support sender override for suspicious scenarios
+        sender_email = template.get("override_sender_email", university_email)
+        sender_name = template.get("override_sender_name", f"Registrar Office - {university_name}")
+        
         reply = IncomingEmail(
-            sender_email=university_email,
-            sender_name=f"Registrar Office - {university_name}",
+            sender_email=sender_email,
+            sender_name=sender_name,
             subject=f"RE: Verification Request - {reference_id}",
             body=body,
             reference_id=reference_id
@@ -192,6 +196,38 @@ Student Records Department
 {university_name}
 
 Note: Partial matches were found but require confirmation."""
+            },
+            "suspicious": {
+                "body": """Hello,
+
+Yes, the certificate is valid. I can confirm this personally.
+
+Regards,
+John
+
+---
+Sent from my iPhone""",
+                # Note: This scenario uses a different sender to simulate fraud
+                "override_sender_email": "random.person12345@gmail.com",
+                "override_sender_name": "John"
+            },
+            "ambiguous": {
+                "body": """Dear Sir/Madam,
+
+RE: Your enquiry (Ref: {reference_id})
+
+We received your request regarding certificate verification. The matter has been forwarded to our records department for review.
+
+Please note that our office has been experiencing some system upgrades recently, and response times may be longer than usual.
+
+If this is urgent, you may want to contact the specific faculty directly, though we cannot guarantee they will be able to assist with verification requests.
+
+We will endeavor to respond when our staff have had an opportunity to review the relevant files.
+
+Thank you for your patience.
+
+Administrative Office
+{university_name}"""
             }
         }
     

@@ -118,6 +118,20 @@ class ComplianceReport(BaseModel):
     compliance_result: ComplianceResult
     decision_explanation: str
     
+    # Function Calling Enhancement Fields
+    function_calling_enabled: bool = False
+    tool_calls_made: List[str] = Field(default_factory=list)
+    
+    # Escalation Fields
+    escalated_to_human: bool = False
+    escalation_reason: Optional[str] = None
+    escalation_priority: Optional[str] = None
+    risk_indicators: List[str] = Field(default_factory=list)
+    
+    # Clarification Fields
+    clarification_needed: bool = False
+    missing_information: List[str] = Field(default_factory=list)
+    
     # Audit Trail
     audit_log: List[AuditLogEntry] = Field(default_factory=list)
     
@@ -142,7 +156,7 @@ class VerificationRequest(BaseModel):
     """API request to verify a certificate."""
     pdf_path: Optional[str] = None
     pdf_base64: Optional[str] = None
-    simulation_scenario: Optional[str] = "verified"  # verified, not_verified, inconclusive
+    simulation_scenario: Optional[str] = "verified"  # verified, not_verified, inconclusive, suspicious, ambiguous
 
 
 class VerificationResponse(BaseModel):

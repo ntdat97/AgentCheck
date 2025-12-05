@@ -26,8 +26,8 @@ const VERIFICATION_STEPS = [
   { step: 2, label: "Extracting fields..." },
   { step: 3, label: "Identifying university..." },
   { step: 4, label: "Drafting verification email..." },
-  { step: 5, label: "Processing university reply..." },
-  { step: 6, label: "Generating report..." },
+  { step: 5, label: "AI analyzing university reply..." },
+  { step: 6, label: "Generating compliance report..." },
 ];
 
 export default function VerifyTab({
@@ -83,10 +83,11 @@ export default function VerifyTab({
       }
 
       let result;
+      // Always use function calling for AI-driven interpretation
       if (isSample && typeof fileOrSample === "string") {
-        result = await api.verifySample(fileOrSample, scenario);
+        result = await api.verifySample(fileOrSample, scenario, true);
       } else if (fileOrSample instanceof File) {
-        result = await api.uploadAndVerify(fileOrSample, scenario);
+        result = await api.uploadAndVerify(fileOrSample, scenario, true);
       } else {
         throw new Error("Invalid input");
       }
@@ -124,20 +125,20 @@ export default function VerifyTab({
     switch (result) {
       case ComplianceResult.COMPLIANT:
         return {
-          bg: "from-emerald-500/20 to-emerald-900/10 border-emerald-500/50",
-          text: "text-emerald-400",
+          bg: "from-emerald-100 to-emerald-50 border-emerald-400",
+          text: "text-emerald-700",
           message: "COMPLIANT - Certificate verified successfully",
         };
       case ComplianceResult.NOT_COMPLIANT:
         return {
-          bg: "from-rose-500/20 to-rose-900/10 border-rose-500/50",
-          text: "text-rose-400",
+          bg: "from-rose-100 to-rose-50 border-rose-400",
+          text: "text-rose-700",
           message: "NOT COMPLIANT - Certificate could not be verified",
         };
       default:
         return {
-          bg: "from-amber-500/20 to-amber-900/10 border-amber-500/50",
-          text: "text-amber-400",
+          bg: "from-amber-100 to-amber-50 border-amber-400",
+          text: "text-amber-700",
           message: "INCONCLUSIVE - Manual review required",
         };
     }
@@ -151,7 +152,7 @@ export default function VerifyTab({
           <span className="text-2xl sm:text-3xl">📄</span>
           Upload Certificate
         </h2>
-        <p className="text-slate-400 text-sm sm:text-base">
+        <p className="text-slate-500 text-sm sm:text-base">
           Upload a PDF certificate to verify its authenticity
         </p>
       </div>
@@ -190,7 +191,7 @@ export default function VerifyTab({
                   e.stopPropagation();
                   setUploadedFile(null);
                 }}
-                className="text-sm text-slate-400 hover:text-white transition-colors mt-1"
+                className="text-sm text-slate-500 hover:text-slate-800 transition-colors mt-1"
               >
                 Remove
               </button>
@@ -198,21 +199,21 @@ export default function VerifyTab({
           </div>
         ) : (
           <div>
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-700/50 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-              <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200/50 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-slate-500" />
             </div>
-            <p className="text-slate-300 text-base sm:text-lg mb-2">
+            <p className="text-slate-600 text-base sm:text-lg mb-2">
               Drag and drop a PDF file here, or{" "}
               <span className="text-blue-400 hover:underline">browse</span>
             </p>
-            <p className="text-sm text-slate-500">Accepts PDF files only</p>
+            <p className="text-sm text-slate-400">Accepts PDF files only</p>
           </div>
         )}
       </div>
 
       {/* Sample Certificates */}
       <div className="mt-6 sm:mt-8">
-        <p className="text-slate-400 mb-4 text-sm sm:text-base">
+        <p className="text-slate-500 mb-4 text-sm sm:text-base">
           Or try a sample certificate:
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -262,17 +263,17 @@ export default function VerifyTab({
               <div className="absolute inset-0 w-10 h-10 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
             </div>
             <div>
-              <span className="text-white font-medium block">
+              <span className="text-slate-800 font-medium block">
                 {currentStep > 0 && currentStep <= VERIFICATION_STEPS.length
                   ? VERIFICATION_STEPS[currentStep - 1].label
                   : "Initializing..."}
               </span>
-              <span className="text-slate-500 text-sm">
+              <span className="text-slate-400 text-sm">
                 Step {currentStep} of {VERIFICATION_STEPS.length}
               </span>
             </div>
           </div>
-          <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
             <div
               className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -292,7 +293,7 @@ export default function VerifyTab({
       {/* Results */}
       {report && (
         <div className="mt-8 sm:mt-10 section-enter">
-          <hr className="border-slate-700/50 mb-8" />
+          <hr className="border-slate-300/50 mb-8" />
 
           {/* Compliance Banner */}
           {(() => {
@@ -333,10 +334,10 @@ function SampleButton({
 }: SampleButtonProps) {
   const colorClasses = {
     green:
-      "from-emerald-500/10 to-transparent border-emerald-500/30 text-emerald-400 hover:border-emerald-500/60 hover:bg-emerald-500/10",
-    red: "from-rose-500/10 to-transparent border-rose-500/30 text-rose-400 hover:border-rose-500/60 hover:bg-rose-500/10",
+      "from-emerald-100 to-emerald-50 border-emerald-400 text-emerald-600 hover:border-emerald-500 hover:bg-emerald-100",
+    red: "from-rose-100 to-rose-50 border-rose-400 text-rose-600 hover:border-rose-500 hover:bg-rose-100",
     yellow:
-      "from-amber-500/10 to-transparent border-amber-500/30 text-amber-400 hover:border-amber-500/60 hover:bg-amber-500/10",
+      "from-amber-100 to-amber-50 border-amber-400 text-amber-600 hover:border-amber-500 hover:bg-amber-100",
   };
 
   return (

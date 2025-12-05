@@ -6,16 +6,97 @@
 
 ## Table of Contents
 
-1. [Research Insight](#1-research-insight)
-2. [Engineering Solution Thinking](#2-engineering-solution-thinking)
-3. [Real-World Applicability](#3-real-world-applicability)
-4. [Security & Compliance Thoughts](#4-security--compliance-thoughts)
+1. [Design Considerations & Evolution](#1-design-considerations--evolution)
+2. [Research Insight](#2-research-insight)
+3. [Engineering Solution Thinking](#3-engineering-solution-thinking)
+4. [Real-World Applicability](#4-real-world-applicability)
+5. [Security & Compliance Thoughts](#5-security--compliance-thoughts)
 
 ---
 
-## 1. Research Insight
+## 1. Design Considerations & Evolution
 
-### 1.1 AI Agent Patterns Studied
+### 1.1 The Framework Question
+
+The assignment offers multiple approaches: LangChain, LlamaIndex, OpenAI function calling, or a handcrafted agent loop. My first instinct was to reach for LangChain—it's popular, well-documented, and would demonstrate familiarity with modern tooling.
+
+But I paused to ask: **What does this project actually need?**
+
+The scope is clear: 3 agents, ~10 tools, 1 linear workflow, prototype scale. LangChain brings 50+ dependencies, complex abstractions, and patterns designed for enterprise-scale agent orchestration. Using it here would be like bringing a forklift to move a chair—technically capable, but not the right tool.
+
+More importantly, in an interview context, wrapping everything in LangChain would hide whether I actually understand how agents work. Anyone can call `AgentExecutor.invoke()`. Fewer can explain the reasoning loop underneath.
+
+### 1.2 My Decision: Handcrafted + Targeted Enhancement
+
+I chose a **hybrid approach**:
+
+| Component | Approach | Rationale |
+|-----------|----------|-----------|
+| Overall workflow | Fixed pipeline | Compliance needs predictability |
+| Extraction & Email agents | Deterministic steps | These tasks are mechanical, not ambiguous |
+| Decision agent | OpenAI Function Calling | This is where flexibility actually matters |
+
+**Why this split?** 
+
+Parsing a PDF is parsing a PDF—there's no benefit to letting an LLM decide whether to parse it. But interpreting a university's reply? That's genuinely ambiguous. A reply might be clear confirmation, a request for more documents, or something suspicious that needs human eyes.
+
+The Decision agent is the only place where dynamic tool selection provides real value. Elsewhere, it would add complexity without benefit.
+
+### 1.3 Why Function Calling Over LangChain
+
+| Consideration | Function Calling | LangChain |
+|---------------|------------------|-----------|
+| Dependencies | Zero new packages | 50+ packages |
+| Debugging | Direct stack traces | Framework abstractions |
+| Interview signal | Shows understanding | Shows usage |
+| Right-sized? | Yes—matches scope | Over-engineered |
+| Future flexibility | Can add LangChain later | Already committed |
+
+The key insight: **I can always add LangChain if scale demands it. I can't easily remove it once embedded.**
+
+### 1.4 What the Enhancement Enables
+
+With Function Calling, the Decision agent gains four capabilities:
+
+1. **Analyze** — Understand what the university is communicating
+2. **Clarify** — Flag when more information is needed  
+3. **Escalate** — Route suspicious cases to humans
+4. **Decide** — Make the final compliance call
+
+The LLM chooses which to invoke based on context. A clear "certificate confirmed" reply goes straight to decision. An ambiguous reply triggers analysis first. A suspicious sender domain triggers escalation—no auto-decision at all.
+
+This isn't just technical flexibility. It's **appropriate caution** for a compliance system.
+
+### 1.5 Trade-offs Acknowledged
+
+Nothing is free. This approach means:
+
+- **More LLM calls** for complex cases (cost/latency)
+- **Less predictable** behavior than pure fixed pipeline
+- **More logging** needed to maintain audit trail
+
+I accepted these trade-offs because:
+- Complex cases are rare—most are straightforward
+- Unpredictability is bounded (max 5 iterations, terminal conditions)
+- Logging is already built in—marginal cost to extend
+
+### 1.6 Evolution Path
+
+This architecture is designed to grow:
+
+```
+Now:        Handcrafted + Function Calling (right for prototype)
+If needed:  Add LangChain for multi-workflow orchestration
+Later:      Full agent framework with memory and retrieval
+```
+
+The principle: **Start simple, add complexity when earned.**
+
+---
+
+## 2. Research Insight
+
+### 2.1 AI Agent Patterns Studied
 
 During the design phase, I researched several prominent AI agent architectures:
 
@@ -27,7 +108,7 @@ During the design phase, I researched several prominent AI agent architectures:
 | **Multi-Agent Systems**        | Specialized agents collaborate                         | Modularity, separation of concerns     | Coordination overhead        |
 | **Tool-Use Agents**            | Agent has access to tools and decides when to use them | Flexible, extensible                   | Requires good tool design    |
 
-### 1.2 Why I Chose Multi-Agent + Function Calling
+### 2.2 Why I Chose Multi-Agent + Function Calling
 
 I selected a **Multi-Agent Architecture with Function Calling** for the following reasons:
 
@@ -45,7 +126,7 @@ I selected a **Multi-Agent Architecture with Function Calling** for the followin
 
 5. **Compliance Alignment**: The workflow mirrors how a human compliance officer would work, making it easier to explain to auditors.
 
-### 1.3 Alternatives Considered
+### 2.3 Alternatives Considered
 
 #### Alternative 1: Single Monolithic Agent
 
@@ -84,7 +165,7 @@ Let the agent decide the entire workflow dynamically.
 - Regulatory requirements need deterministic behavior
 - Harder to explain decisions to auditors
 
-### 1.4 Trade-offs Analysis
+### 2.4 Trade-offs Analysis
 
 | Aspect             | Our Approach                         | Trade-off                              |
 | ------------------ | ------------------------------------ | -------------------------------------- |
@@ -96,9 +177,9 @@ Let the agent decide the entire workflow dynamically.
 
 ---
 
-## 2. Engineering Solution Thinking
+## 3. Engineering Solution Thinking
 
-### 2.1 Architecture Decisions
+### 3.1 Architecture Decisions
 
 #### Decision 1: Tools as First-Class Citizens
 
@@ -162,7 +243,7 @@ Certificate Text: {{ certificate_text }}
 - Easy to integrate with external data sources
 - Supports different verification endpoints per university
 
-### 2.2 Balancing Hard-Coded Logic vs. Generative Reasoning
+### 3.2 Balancing Hard-Coded Logic vs. Generative Reasoning
 
 | Step               | Approach               | Reason                                    |
 | ------------------ | ---------------------- | ----------------------------------------- |
@@ -175,7 +256,7 @@ Certificate Text: {{ certificate_text }}
 
 **Key Insight:** Use LLM where natural language understanding is needed; use deterministic code where consistency is required.
 
-### 2.3 Failure Cases and Mitigations
+### 3.3 Failure Cases and Mitigations
 
 | Failure Case         | Mitigation                                                    |
 | -------------------- | ------------------------------------------------------------- |
@@ -187,7 +268,7 @@ Certificate Text: {{ certificate_text }}
 | Network timeout      | Retry with exponential backoff                                |
 | Rate limiting        | Task queue with throttling                                    |
 
-### 2.4 Audit Trail Design
+### 3.4 Audit Trail Design
 
 Every action creates an `AuditLogEntry`:
 
@@ -214,9 +295,9 @@ class AuditLogEntry:
 
 ---
 
-## 3. Real-World Applicability
+## 4. Real-World Applicability
 
-### 3.1 Extension to Real Email Integration
+### 4.1 Extension to Real Email Integration
 
 **Current:** Simulated outbox/inbox
 
@@ -246,7 +327,7 @@ class RealEmailService(EmailService):
 - Spam folder handling
 - Bounce handling
 
-### 3.2 PDF Text Extraction - Design Decision
+### 4.2 PDF Text Extraction - Design Decision
 
 **Design Choice:** Always use LLM Vision API for certificate text extraction.
 
@@ -281,7 +362,7 @@ def parse_pdf(self, pdf_path: str) -> dict:
     return {"raw_text": text, "method": "vision_api"}
 ```
 
-### 3.3 API-Based University Verification
+### 4.3 API-Based University Verification
 
 Many universities offer verification APIs:
 
@@ -302,7 +383,7 @@ class UniversityAPIVerifier:
         )
 ```
 
-### 3.4 Scaling to 1,000+ Checks/Day
+### 4.4 Scaling to 1,000+ Checks/Day
 
 **Architecture for Scale:**
 
@@ -327,7 +408,7 @@ class UniversityAPIVerifier:
 - **Retry Logic:** Exponential backoff
 - **Dead Letter Queue:** Failed tasks for manual review
 
-### 3.5 Monitoring, SLA, and Retries
+### 4.5 Monitoring, SLA, and Retries
 
 ```python
 # Example monitoring setup
@@ -352,9 +433,9 @@ SLA_CONFIG = {
 
 ---
 
-## 4. Security & Compliance Thoughts
+## 5. Security & Compliance Thoughts
 
-### 4.1 Data Privacy
+### 5.1 Data Privacy
 
 **Personal Data Handled:**
 
@@ -376,7 +457,7 @@ SLA_CONFIG = {
 - GDPR/CCPA compliance (right to deletion)
 - PII masking in logs
 
-### 4.2 Model Hallucination Risks
+### 5.2 Model Hallucination Risks
 
 **Identified Risks:**
 
@@ -406,7 +487,7 @@ def _fallback_analyze_reply(self, reply_text: str) -> ReplyAnalysis:
     ...
 ```
 
-### 4.3 Traceability Requirements
+### 5.3 Traceability Requirements
 
 **Compliance Standard Alignment:**
 
@@ -425,7 +506,7 @@ def _fallback_analyze_reply(self, reply_text: str) -> ReplyAnalysis:
 - Session summaries for quick lookup
 - JSONL logs for detailed reconstruction
 
-### 4.4 Human-in-the-Loop Necessity
+### 5.4 Human-in-the-Loop Necessity
 
 **When Human Review is Required:**
 
@@ -489,13 +570,13 @@ For production deployment, the key enhancements would be:
 
 1. Real email integration
 2. University API connections
-3. Enhanced OCR capabilities
-4. Horizontal scaling with message queues
-5. Robust human-in-the-loop workflows
+3. Horizontal scaling with message queues
+4. Robust human-in-the-loop workflows
+5. Function Calling enhancement for DecisionAgent (see [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md))
 
 The system is designed with RegTech compliance requirements at its core, ensuring that every decision can be traced, explained, and audited.
 
 ---
 
-_Document Version: 1.0.0_  
+_Document Version: 1.1.0_  
 _Last Updated: December 2024_

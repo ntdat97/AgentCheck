@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Query
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -109,18 +109,24 @@ async def health():
 @app.post("/verify", response_model=VerificationResponse)
 async def verify_certificate(
     request: VerificationRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    use_function_calling: bool = Query(
+        default=True,
+        description="Use AI-driven function calling for dynamic tool selection and interpretation"
+    )
 ):
     """
     Verify a certificate PDF.
     
     Args:
         request: Verification request with PDF path or base64 content
+        use_function_calling: Enable dynamic tool selection via OpenAI Function Calling
         
     Returns:
-        Verification response with task ID
+        Verification response with task ID and report
     """
-    orch = get_orchestrator()
+    # Create orchestrator with appropriate agent type
+    orch = AgentOrchestrator(use_function_calling=use_function_calling)
     
     if not request.pdf_path:
         raise HTTPException(
@@ -268,7 +274,7 @@ def run_cli():
     verify_parser.add_argument("pdf_path", help="Path to the PDF certificate")
     verify_parser.add_argument(
         "--scenario", "-s",
-        choices=["verified", "not_verified", "inconclusive"],
+        choices=["verified", "not_verified", "inconclusive", "suspicious", "ambiguous"],
         default="verified",
         help="Simulation scenario for university reply"
     )

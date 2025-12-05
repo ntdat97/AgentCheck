@@ -122,4 +122,9 @@ export interface Stats {
   inconclusive: number;
 }
 
-export type SimulationScenario = "verified" | "not_verified" | "inconclusive";
+export type SimulationScenario =
+  | "verified"
+  | "not_verified"
+  | "inconclusive"
+  | "suspicious"
+  | "ambiguous";

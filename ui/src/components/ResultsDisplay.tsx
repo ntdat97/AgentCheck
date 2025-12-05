@@ -8,7 +8,6 @@ import {
   Building2,
   Calendar,
   Mail,
-  MessageSquare,
   Brain,
   ClipboardList,
   CheckCircle,
@@ -98,7 +97,7 @@ export default function ResultsDisplay({
       >
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h4 className="font-semibold text-slate-300 mb-3 text-sm uppercase tracking-wider">
+            <h4 className="font-semibold text-slate-600 mb-3 text-sm uppercase tracking-wider">
               Extracted Information
             </h4>
             <div className="space-y-3">
@@ -127,7 +126,7 @@ export default function ResultsDisplay({
 
           {report.university_contact && (
             <div>
-              <h4 className="font-semibold text-slate-300 mb-3 text-sm uppercase tracking-wider">
+              <h4 className="font-semibold text-slate-600 mb-3 text-sm uppercase tracking-wider">
                 University Contact
               </h4>
               <div className="space-y-3">
@@ -161,7 +160,7 @@ export default function ResultsDisplay({
         onToggle={() => toggleSection("decision")}
       >
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-          <p className="text-slate-300 leading-relaxed">
+          <p className="text-slate-600 leading-relaxed">
             {report.decision_explanation}
           </p>
         </div>
@@ -186,19 +185,19 @@ export default function ResultsDisplay({
                 <div className="mb-4 space-y-1">
                   <p className="text-sm text-slate-400">
                     To:{" "}
-                    <span className="text-white font-medium">
+                    <span className="text-slate-800 font-medium">
                       {report.outgoing_email.recipient_email}
                     </span>
                   </p>
                   <p className="text-sm text-slate-400">
                     Subject:{" "}
-                    <span className="text-white font-medium">
+                    <span className="text-slate-800 font-medium">
                       {report.outgoing_email.subject}
                     </span>
                   </p>
                 </div>
-                <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/30">
-                  <pre className="text-base text-slate-300 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto">
+                <div className="bg-slate-100/70 rounded-lg p-4 border border-slate-300/30">
+                  <pre className="text-base text-slate-600 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto">
                     {report.outgoing_email.body}
                   </pre>
                 </div>
@@ -214,78 +213,21 @@ export default function ResultsDisplay({
                 <div className="mb-4 space-y-1">
                   <p className="text-sm text-slate-400">
                     From:{" "}
-                    <span className="text-white font-medium">
+                    <span className="text-slate-800 font-medium">
                       {report.incoming_email.sender_email}
                     </span>
                   </p>
                   <p className="text-sm text-slate-400">
                     Subject:{" "}
-                    <span className="text-white font-medium">
+                    <span className="text-slate-800 font-medium">
                       {report.incoming_email.subject}
                     </span>
                   </p>
                 </div>
-                <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/30">
-                  <pre className="text-base text-slate-300 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto">
+                <div className="bg-slate-100/70 rounded-lg p-4 border border-slate-300/30">
+                  <pre className="text-base text-slate-600 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto">
                     {report.incoming_email.body}
                   </pre>
-                </div>
-              </div>
-            )}
-          </div>
-        </CollapsibleSection>
-      )}
-
-      {/* AI Analysis */}
-      {report.reply_analysis && (
-        <CollapsibleSection
-          title="AI Analysis"
-          emoji="🤖"
-          icon={<MessageSquare className="w-5 h-5" />}
-          expanded={expandedSections.has("analysis")}
-          onToggle={() => toggleSection("analysis")}
-        >
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="glass-light rounded-lg p-3">
-                <span className="text-xs text-slate-500 uppercase tracking-wider">
-                  Status
-                </span>
-                <p className="font-semibold text-white mt-1">
-                  {report.reply_analysis.verification_status}
-                </p>
-              </div>
-              <div className="glass-light rounded-lg p-3">
-                <span className="text-xs text-slate-500 uppercase tracking-wider">
-                  Confidence
-                </span>
-                <p className="font-semibold text-white mt-1">
-                  {Math.round(report.reply_analysis.confidence_score * 100)}%
-                </p>
-              </div>
-            </div>
-            <div>
-              <span className="text-xs text-slate-500 uppercase tracking-wider">
-                Explanation
-              </span>
-              <p className="text-slate-300 mt-2 leading-relaxed">
-                {report.reply_analysis.explanation}
-              </p>
-            </div>
-            {report.reply_analysis.key_phrases.length > 0 && (
-              <div>
-                <span className="text-xs text-slate-500 uppercase tracking-wider">
-                  Key Phrases
-                </span>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {report.reply_analysis.key_phrases.map((phrase, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-slate-700/50 rounded-lg text-xs text-slate-300 border border-slate-600/30"
-                    >
-                      {phrase}
-                    </span>
-                  ))}
                 </div>
               </div>
             )}
@@ -305,7 +247,7 @@ export default function ResultsDisplay({
           {report.audit_log.map((entry, index) => (
             <div
               key={index}
-              className="flex items-start gap-3 py-3 border-b border-slate-700/50 last:border-0"
+              className="flex items-start gap-3 py-3 border-b border-slate-300/50 last:border-0"
             >
               <div className="flex-shrink-0 mt-0.5">
                 {entry.success ? (
@@ -319,7 +261,9 @@ export default function ResultsDisplay({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white font-medium">{entry.step}</p>
+                <p className="text-sm text-slate-800 font-medium">
+                  {entry.step}
+                </p>
                 <p className="text-xs text-slate-400 mt-0.5">{entry.action}</p>
                 {entry.agent && (
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -340,7 +284,7 @@ export default function ResultsDisplay({
         <div className="flex gap-3 pt-4">
           <button
             onClick={downloadJson}
-            className="flex items-center gap-2 px-5 py-2.5 glass-light hover:bg-slate-700/50 rounded-xl transition-all duration-200 font-medium"
+            className="flex items-center gap-2 px-5 py-2.5 glass-light hover:bg-slate-200/50 rounded-xl transition-all duration-200 font-medium"
           >
             <Download className="w-4 h-4" />
             Download JSON Report
@@ -378,7 +322,7 @@ function MetricCard({ label, value, color }: MetricCardProps) {
     >
       <div
         className={`text-base sm:text-lg font-bold ${
-          color ? colorClasses[color] : "text-white"
+          color ? colorClasses[color] : "text-slate-800"
         } truncate`}
       >
         {value}
@@ -401,7 +345,7 @@ function InfoRow({ icon, label, value }: InfoRowProps) {
       <span className="text-slate-400 flex-shrink-0 min-w-[80px]">
         {label}:
       </span>
-      <span className="text-white truncate">{value || "N/A"}</span>
+      <span className="text-slate-800 truncate">{value || "N/A"}</span>
     </div>
   );
 }
@@ -427,9 +371,9 @@ function CollapsibleSection({
     <div className="glass-card rounded-xl overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between hover:bg-slate-700/30 transition-colors"
+        className="w-full px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between hover:bg-slate-100/50 transition-colors"
       >
-        <div className="flex items-center gap-3 text-slate-300">
+        <div className="flex items-center gap-3 text-slate-600">
           <span className="text-lg">{emoji}</span>
           <span className="font-semibold text-sm sm:text-base">{title}</span>
         </div>
@@ -442,7 +386,7 @@ function CollapsibleSection({
         </div>
       </button>
       {expanded && (
-        <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-slate-700/30 pt-4">
+        <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-slate-300/30 pt-4">
           {children}
         </div>
       )}

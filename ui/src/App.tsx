@@ -64,13 +64,13 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen text-slate-800">
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-slate-700/50">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-slate-300/50">
         <div className="flex items-center justify-between px-3 py-2">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+            className="p-2 rounded-lg hover:bg-slate-200/50 transition-colors"
             aria-label="Toggle menu"
           >
             {sidebarOpen ? (
@@ -104,7 +104,7 @@ function App() {
 
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors opacity-0 pointer-events-none"
+            className="p-2 rounded-lg hover:bg-slate-200/50 transition-colors opacity-0 pointer-events-none"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -132,21 +132,21 @@ function App() {
                 ? "translate-x-0"
                 : "-translate-x-full lg:translate-x-0"
             }
-            lg:border-r border-slate-700/30
+            lg:border-r border-slate-300/30
           `}
         >
           <div className="p-6">
             {/* Logo */}
             <div className="mb-8 hidden lg:block">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center glow-sm">
-                  <Search className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center glow-sm shadow-md">
+                  <Search className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gradient">
                     AgentCheck
                   </h1>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     AI-Powered Verification
                   </p>
                 </div>
@@ -156,14 +156,14 @@ function App() {
             {/* Settings Section */}
             <div className="mb-8 mt-16 lg:mt-0">
               <div className="flex items-center gap-2 mb-4">
-                <Settings className="w-4 h-4 text-slate-400" />
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                <Settings className="w-4 h-4 text-slate-500" />
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
                   Settings
                 </h2>
               </div>
 
               <div className="glass-light rounded-xl p-4">
-                <label className="block text-sm text-slate-300 mb-2 font-medium">
+                <label className="block text-sm text-slate-600 mb-2 font-medium">
                   Simulation Mode
                 </label>
                 <div className="relative">
@@ -172,15 +172,19 @@ function App() {
                     onChange={(e) =>
                       setScenario(e.target.value as SimulationScenario)
                     }
-                    className="w-full bg-slate-800/80 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 appearance-none cursor-pointer transition-all"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 appearance-none cursor-pointer transition-all"
                   >
                     <option value="verified">✓ Verified</option>
                     <option value="not_verified">✗ Not Verified</option>
                     <option value="inconclusive">? Inconclusive</option>
+                    <option value="suspicious">
+                      ⚠ Suspicious (Fraud Test)
+                    </option>
+                    <option value="ambiguous">🔍 Ambiguous (Multi-step)</option>
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                 </div>
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-xs text-slate-400 mt-2">
                   Choose simulated university response
                 </p>
               </div>
@@ -189,8 +193,8 @@ function App() {
             {/* Quick Stats */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
-                <Activity className="w-4 h-4 text-slate-400" />
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                <Activity className="w-4 h-4 text-slate-500" />
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
                   Quick Stats
                 </h2>
               </div>
@@ -221,7 +225,7 @@ function App() {
                 <span className="text-base">💡</span>
                 How it works
               </h3>
-              <ol className="text-xs text-slate-400 space-y-2">
+              <ol className="text-xs text-slate-500 space-y-2">
                 {[
                   "Upload a certificate PDF",
                   "AI extracts key information",
@@ -230,7 +234,7 @@ function App() {
                   "AI analyzes and decides compliance",
                 ].map((step, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-700/80 text-slate-300 flex items-center justify-center text-[10px] font-medium">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-medium">
                       {index + 1}
                     </span>
                     <span className="pt-0.5">{step}</span>
@@ -244,7 +248,7 @@ function App() {
         {/* Main Content */}
         <main className="flex-1 min-h-screen lg:ml-0 pt-14 lg:pt-0">
           {/* Desktop Header with Tabs - Hidden on mobile */}
-          <header className="hidden lg:block sticky top-0 z-30 glass border-b border-slate-700/30">
+          <header className="hidden lg:block sticky top-0 z-30 glass border-b border-slate-300/30">
             <div className="px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-center h-16">
                 <nav className="flex gap-2">
@@ -322,12 +326,12 @@ function StatCard({ label, value, color }: StatCardProps) {
     >
       <div
         className={`text-2xl font-bold ${
-          color ? colorClasses[color] : "text-white"
+          color ? colorClasses[color] : "text-slate-800"
         }`}
       >
         {value}
       </div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -355,7 +359,7 @@ function TabButton({
         ${
           active
             ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20"
-            : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+            : "text-slate-500 hover:text-slate-800 hover:bg-slate-200/50"
         }
       `}
     >
@@ -384,7 +388,11 @@ function MobileTabButton({
       onClick={onClick}
       className={`
         flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200
-        ${active ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"}
+        ${
+          active
+            ? "bg-blue-600 text-white"
+            : "text-slate-500 hover:text-slate-800"
+        }
       `}
     >
       {icon}

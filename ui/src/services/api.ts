@@ -84,12 +84,16 @@ class ApiService {
    */
   async verifyCertificate(
     pdfPath: string,
-    scenario: SimulationScenario = "verified"
+    scenario: SimulationScenario = "verified",
+    useFunctionCalling: boolean = false
   ): Promise<VerificationResponse> {
-    const response = await this.client.post<VerificationResponse>("/verify", {
-      pdf_path: pdfPath,
-      simulation_scenario: scenario,
-    });
+    const response = await this.client.post<VerificationResponse>(
+      `/verify?use_function_calling=${useFunctionCalling}`,
+      {
+        pdf_path: pdfPath,
+        simulation_scenario: scenario,
+      }
+    );
     return response.data;
   }
 
@@ -129,13 +133,18 @@ class ApiService {
    */
   async uploadAndVerify(
     file: File,
-    scenario: SimulationScenario = "verified"
+    scenario: SimulationScenario = "verified",
+    useFunctionCalling: boolean = false
   ): Promise<VerificationResponse> {
     // First upload the file
     const uploadResult = await this.uploadPdf(file);
 
     // Then verify it
-    return this.verifyCertificate(uploadResult.path, scenario);
+    return this.verifyCertificate(
+      uploadResult.path,
+      scenario,
+      useFunctionCalling
+    );
   }
 
   /**
@@ -143,10 +152,11 @@ class ApiService {
    */
   async verifySample(
     sampleName: string,
-    scenario: SimulationScenario = "verified"
+    scenario: SimulationScenario = "verified",
+    useFunctionCalling: boolean = false
   ): Promise<VerificationResponse> {
     const pdfPath = `./data/sample_pdfs/${sampleName}.pdf`;
-    return this.verifyCertificate(pdfPath, scenario);
+    return this.verifyCertificate(pdfPath, scenario, useFunctionCalling);
   }
 }
 

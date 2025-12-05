@@ -115,7 +115,16 @@ class ComplianceService:
         outgoing_email: Optional[OutgoingEmail] = None,
         incoming_email: Optional[IncomingEmail] = None,
         reply_analysis: Optional[ReplyAnalysis] = None,
-        processing_time: Optional[float] = None
+        processing_time: Optional[float] = None,
+        # Function calling enhancement fields
+        function_calling_enabled: bool = False,
+        tool_calls_made: Optional[List[str]] = None,
+        escalated_to_human: bool = False,
+        escalation_reason: Optional[str] = None,
+        escalation_priority: Optional[str] = None,
+        risk_indicators: Optional[List[str]] = None,
+        clarification_needed: bool = False,
+        missing_information: Optional[List[str]] = None
     ) -> ComplianceReport:
         """
         Create a comprehensive compliance report.
@@ -130,18 +139,45 @@ class ComplianceService:
             incoming_email: University reply (if received)
             reply_analysis: Analysis of reply (if performed)
             processing_time: Time taken to process
+            function_calling_enabled: Whether function calling agent was used
+            tool_calls_made: List of tools called by the agent
+            escalated_to_human: Whether case was escalated to human
+            escalation_reason: Reason for escalation
+            escalation_priority: Priority level of escalation
+            risk_indicators: Identified risk indicators
+            clarification_needed: Whether clarification is needed
+            missing_information: List of missing information items
             
         Returns:
             Complete ComplianceReport object
         """
         compliance_result = self.determine_compliance(verification_status)
         
-        decision_explanation = self.generate_decision_explanation(
-            verification_status=verification_status,
-            compliance_result=compliance_result,
-            reply_analysis=reply_analysis,
-            university_found=university_contact is not None
-        )
+        # Generate decision explanation
+        # For escalation cases, create a detailed explanation
+        if escalated_to_human and escalation_reason:
+            risk_info = ""
+            if risk_indicators:
+                risk_info = f" Risk indicators: {', '.join(risk_indicators)}."
+            decision_explanation = (
+                f"ESCALATED TO HUMAN REVIEW ({escalation_priority or 'MEDIUM'} priority): "
+                f"{escalation_reason}{risk_info} "
+                f"This case requires manual compliance officer review before a final decision can be made."
+            )
+        elif clarification_needed and missing_information:
+            missing_info = ", ".join(missing_information) if missing_information else "additional documentation"
+            decision_explanation = (
+                f"CLARIFICATION REQUIRED: Additional information needed to complete verification. "
+                f"Missing information: {missing_info}. "
+                f"Follow-up action is required before a decision can be made."
+            )
+        else:
+            decision_explanation = self.generate_decision_explanation(
+                verification_status=verification_status,
+                compliance_result=compliance_result,
+                reply_analysis=reply_analysis,
+                university_found=university_contact is not None
+            )
         
         report = ComplianceReport(
             pdf_filename=pdf_filename,
@@ -155,7 +191,16 @@ class ComplianceService:
             compliance_result=compliance_result,
             decision_explanation=decision_explanation,
             audit_log=audit_log,
-            processing_time_seconds=processing_time
+            processing_time_seconds=processing_time,
+            # Function calling enhancement fields
+            function_calling_enabled=function_calling_enabled,
+            tool_calls_made=tool_calls_made or [],
+            escalated_to_human=escalated_to_human,
+            escalation_reason=escalation_reason,
+            escalation_priority=escalation_priority,
+            risk_indicators=risk_indicators or [],
+            clarification_needed=clarification_needed,
+            missing_information=missing_information or []
         )
         
         # Save report

@@ -14,13 +14,13 @@ export default function AboutTab() {
     <div className="max-w-4xl mx-auto">
       {/* Hero Section */}
       <div className="text-center mb-10 sm:mb-12">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-6 glow-md">
-          <Search className="w-10 h-10" />
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-6 glow-md shadow-lg">
+          <Search className="w-10 h-10 text-white" />
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-4">
           About <span className="text-gradient">AgentCheck</span>
         </h1>
-        <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+        <p className="text-slate-500 text-lg max-w-2xl mx-auto">
           AI-powered certificate verification system that automates the
           compliance workflow for credential verification.
         </p>
@@ -72,7 +72,7 @@ export default function AboutTab() {
               "Compliance Decision",
             ].map((step, index, arr) => (
               <div key={step} className="flex items-center gap-2 sm:gap-3">
-                <span className="px-3 py-1.5 glass-light rounded-lg text-slate-300 whitespace-nowrap">
+                <span className="px-3 py-1.5 glass-light rounded-lg text-slate-600 whitespace-nowrap">
                   {step}
                 </span>
                 {index < arr.length - 1 && (
@@ -128,7 +128,7 @@ export default function AboutTab() {
               className="flex items-center gap-3 glass-light rounded-lg p-3"
             >
               <span className="text-emerald-400">{item.icon}</span>
-              <span className="text-slate-300 text-sm">{item.text}</span>
+              <span className="text-slate-600 text-sm">{item.text}</span>
             </div>
           ))}
         </div>
@@ -140,7 +140,7 @@ export default function AboutTab() {
           <span className="text-xl sm:text-2xl">⚠️</span>
           Demo Limitations
         </h2>
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 sm:p-5">
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 sm:p-5">
           <ul className="space-y-2">
             {[
               "University replies are simulated (demo mode)",
@@ -149,9 +149,9 @@ export default function AboutTab() {
             ].map((item, index) => (
               <li
                 key={index}
-                className="flex items-start gap-3 text-amber-300/90 text-sm"
+                className="flex items-start gap-3 text-amber-700 text-sm"
               >
-                <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-500" />
                 {item}
               </li>
             ))}
@@ -160,7 +160,7 @@ export default function AboutTab() {
       </section>
 
       {/* Footer */}
-      <div className="text-center pt-6 border-t border-slate-700/30">
+      <div className="text-center pt-6 border-t border-slate-300/30">
         <p className="text-slate-500 text-sm">
           Built for RegTech compliance automation
         </p>
@@ -189,8 +189,8 @@ function AgentCard({ icon, title, description, color }: AgentCardProps) {
       className={`glass-card rounded-xl p-5 bg-gradient-to-br ${colorClasses[color]} hover-lift`}
     >
       <div className="mb-3">{icon}</div>
-      <h3 className="font-semibold text-white mb-1">{title}</h3>
-      <p className="text-slate-400 text-sm">{description}</p>
+      <h3 className="font-semibold text-slate-800 mb-1">{title}</h3>
+      <p className="text-slate-500 text-sm">{description}</p>
     </div>
   );
 }
@@ -203,8 +203,8 @@ interface TechItemProps {
 function TechItem({ label, value }: TechItemProps) {
   return (
     <div className="glass-light rounded-lg p-4 flex items-center gap-3">
-      <span className="text-slate-500 text-sm min-w-[80px]">{label}:</span>
-      <span className="text-white font-medium text-sm">{value}</span>
+      <span className="text-slate-400 text-sm min-w-[80px]">{label}:</span>
+      <span className="text-slate-800 font-medium text-sm">{value}</span>
     </div>
   );
 }

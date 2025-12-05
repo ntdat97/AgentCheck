@@ -150,6 +150,107 @@ class LLMClient:
         
         return ""
     
+    def complete_with_tools(
+        self,
+        messages: List[Dict],
+        tools: List[Dict],
+        tool_choice: str = "auto",
+        temperature: Optional[float] = None
+    ) -> Any:
+        """
+        Call LLM with function calling capability.
+        
+        Args:
+            messages: Conversation history
+            tools: Tool definitions in OpenAI format
+            tool_choice: "auto", "none", or {"type": "function", "function": {"name": "..."}}
+            temperature: Override default temperature
+            
+        Returns:
+            ChatCompletionMessage with potential tool_calls attribute
+        """
+        if not self.is_available():
+            return self._mock_tool_response(messages, tools)
+        
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "tools": tools,
+            "tool_choice": tool_choice,
+            "temperature": temperature or self.temperature,
+        }
+        
+        # Use appropriate token parameter based on model
+        if self._is_new_model_format():
+            kwargs["max_completion_tokens"] = DEFAULT_MAX_TOKENS
+        else:
+            kwargs["max_tokens"] = DEFAULT_MAX_TOKENS
+        
+        for attempt in range(self.max_retries):
+            try:
+                response = self.client.chat.completions.create(**kwargs)
+                return response.choices[0].message
+            except Exception as e:
+                if attempt == self.max_retries - 1:
+                    raise RuntimeError(f"LLM tool call failed after {self.max_retries} attempts: {e}")
+                continue
+        
+        return None
+    
+    def _mock_tool_response(self, messages: List[Dict], tools: List[Dict]) -> Any:
+        """
+        Provide mock tool response when LLM is not available.
+        Returns a mock object that simulates OpenAI's ChatCompletionMessage.
+        """
+        from dataclasses import dataclass
+        from typing import Optional, List as TypingList
+        
+        @dataclass
+        class MockFunctionCall:
+            name: str
+            arguments: str
+        
+        @dataclass
+        class MockToolCall:
+            id: str
+            type: str
+            function: MockFunctionCall
+        
+        @dataclass
+        class MockMessage:
+            role: str
+            content: Optional[str]
+            tool_calls: Optional[TypingList[MockToolCall]]
+        
+        # Analyze the last user message to determine appropriate mock response
+        last_user_msg = ""
+        for msg in reversed(messages):
+            if msg.get("role") == "user":
+                last_user_msg = msg.get("content", "").lower()
+                break
+        
+        # Default to decide_compliance tool for simplicity
+        import json
+        return MockMessage(
+            role="assistant",
+            content=None,
+            tool_calls=[
+                MockToolCall(
+                    id="mock_call_1",
+                    type="function",
+                    function=MockFunctionCall(
+                        name="decide_compliance",
+                        arguments=json.dumps({
+                            "status": "COMPLIANT",
+                            "confidence_score": 0.85,
+                            "explanation": "Mock response - LLM not configured",
+                            "evidence_summary": "Mock evidence"
+                        })
+                    )
+                )
+            ]
+        )
+    
     def complete_json(
         self,
         prompt: str,

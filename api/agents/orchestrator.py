@@ -20,6 +20,7 @@ from api.services.compliance import ComplianceService
 from api.agents.extraction_agent import ExtractionAgent
 from api.agents.email_agent import EmailAgent
 from api.agents.decision_agent import DecisionAgent
+from api.agents.decision_agent_fc import DecisionAgentWithFunctionCalling
 from api.utils.llm_client import LLMClient
 
 
@@ -38,7 +39,8 @@ class AgentOrchestrator:
         self,
         data_dir: str = "./data",
         config_dir: str = "./config",
-        llm_client: Optional[LLMClient] = None
+        llm_client: Optional[LLMClient] = None,
+        use_function_calling: bool = True  # Default to function calling for AI-driven interpretation
     ):
         """
         Initialize the orchestrator.
@@ -69,7 +71,15 @@ class AgentOrchestrator:
         # Initialize agents
         self.extraction_agent = ExtractionAgent(self.tools, self.audit_logger)
         self.email_agent = EmailAgent(self.tools, self.audit_logger)
-        self.decision_agent = DecisionAgent(self.tools, self.audit_logger)
+        
+        # Use function calling agent if enabled
+        self.use_function_calling = use_function_calling
+        if use_function_calling:
+            self.decision_agent = DecisionAgentWithFunctionCalling(
+                self.tools, self.audit_logger, self.llm_client
+            )
+        else:
+            self.decision_agent = DecisionAgent(self.tools, self.audit_logger)
         
         # Compliance service for report generation
         self.compliance_service = ComplianceService(str(self.data_dir))
@@ -174,7 +184,16 @@ class AgentOrchestrator:
                 outgoing_email=email_result.get("outgoing_email"),
                 incoming_email=email_result.get("incoming_email"),
                 reply_analysis=decision_result.get("reply_analysis"),
-                processing_time=processing_time
+                processing_time=processing_time,
+                # Function calling enhancement fields
+                function_calling_enabled=decision_result.get("function_calling_enabled", False),
+                tool_calls_made=decision_result.get("tool_calls_made", []),
+                escalated_to_human=decision_result.get("escalated_to_human", False),
+                escalation_reason=decision_result.get("escalation_reason"),
+                escalation_priority=decision_result.get("escalation_priority"),
+                risk_indicators=decision_result.get("risk_indicators", []),
+                clarification_needed=decision_result.get("clarification_needed", False),
+                missing_information=decision_result.get("missing_information", [])
             )
             
             return report
