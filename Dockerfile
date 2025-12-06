@@ -102,18 +102,18 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV DATA_DIR=/app/data
 ENV CONFIG_DIR=/app/config
 
-# Expose ports (API: 8000, Frontend: 3000)
-EXPOSE 8000 3000
+# Expose port 10000 (Render's default port)
+EXPOSE 10000
 
 # Switch to non-root user
 USER agentcheck
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:10000/')" || exit 1
 
-# Default command - start both nginx and uvicorn
-CMD nginx && uvicorn api.main:app --host 0.0.0.0 --port 8000
+# Default command - start both nginx (frontend on 10000) and uvicorn (API on 8000)
+CMD sh -c "nginx && uvicorn api.main:app --host 0.0.0.0 --port 8000"
 
 
 # ---- Development Stage ----
