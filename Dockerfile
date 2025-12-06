@@ -84,9 +84,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy application code
 COPY --chown=agentcheck:agentcheck api/ ./api/
 COPY --chown=agentcheck:agentcheck config/ ./config/
-COPY --chown=agentcheck:agentcheck data/ ./data/
 
-# Create necessary directories (sample_pdfs removed - now in frontend public folder)
+# Create data directories (not copied from repo as they're gitignored)
 RUN mkdir -p /app/data/outbox \
              /app/data/inbox \
              /app/data/reports \
