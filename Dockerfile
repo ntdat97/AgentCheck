@@ -131,4 +131,9 @@ RUN pip install --no-cache-dir pytest pytest-asyncio pytest-cov black isort mypy
 USER agentcheck
 
 # Development command with hot reload
+# Development command with hot reload
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# ---- Final Stage (Production) ----
+# This ensures that 'production' is the default target when building without arguments
+FROM production AS final
