@@ -362,7 +362,7 @@ interface CollapsibleSectionProps {
 function CollapsibleSection({
   title,
   emoji,
-  icon,
+  icon: _icon,
   expanded,
   onToggle,
   children,
