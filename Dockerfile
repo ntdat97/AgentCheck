@@ -63,8 +63,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN mkdir -p /var/lib/nginx/body /var/lib/nginx/proxy /var/lib/nginx/fastcgi \
              /var/lib/nginx/uwsgi /var/lib/nginx/scgi \
              /var/run /var/log/nginx \
-    && chown -R agentcheck:agentcheck /var/lib/nginx /var/run /var/log/nginx /var/www/html \
-    && chmod -R 755 /var/lib/nginx /var/run /var/log/nginx \
+    && chown -R agentcheck:agentcheck /var/lib/nginx /var/run /var/log/nginx /var/www/html /etc/nginx/conf.d \
+    && chmod -R 755 /var/lib/nginx /var/run /var/log/nginx /etc/nginx/conf.d \
     && sed -i 's/user www-data;/# user www-data;/' /etc/nginx/nginx.conf \
     && sed -i 's|pid /run/nginx.pid;|pid /tmp/nginx.pid;|' /etc/nginx/nginx.conf
 
@@ -110,10 +110,10 @@ USER agentcheck
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:10000/')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
-# Default command - start both nginx (frontend on 10000) and uvicorn (API on 8000)
-CMD sh -c "nginx && uvicorn api.main:app --host 0.0.0.0 --port 8000"
+# Default command - start nginx in background, then uvicorn in foreground
+CMD sh -c "nginx && exec uvicorn api.main:app --host 0.0.0.0 --port 8000"
 
 
 # ---- Development Stage ----

@@ -24,6 +24,16 @@
       "email": "registrar@pit.edu.au",
       "country": "Australia",
       "verification_department": "Academic Administration"
+    },
+    "The University of Western Australia": {
+      "email": "studentrecords@uwa.edu.au",
+      "country": "Australia",
+      "verification_department": "Student Records Office"
+    },
+    "University of Western Australia": {
+      "email": "studentrecords@uwa.edu.au",
+      "country": "Australia",
+      "verification_department": "Student Records Office"
     }
   },
   "default_response_time_days": 5,
