@@ -54,9 +54,10 @@ LABEL description="AI-powered certificate verification system"
 # Create non-root user for security
 RUN groupadd -r agentcheck && useradd -r -g agentcheck agentcheck
 
-# Install nginx for serving frontend
+# Install nginx for serving frontend and procps for process monitoring
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure nginx to run as non-root
