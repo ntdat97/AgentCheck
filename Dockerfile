@@ -86,9 +86,8 @@ COPY --chown=agentcheck:agentcheck api/ ./api/
 COPY --chown=agentcheck:agentcheck config/ ./config/
 COPY --chown=agentcheck:agentcheck data/ ./data/
 
-# Create necessary directories
-RUN mkdir -p /app/data/sample_pdfs \
-             /app/data/outbox \
+# Create necessary directories (sample_pdfs removed - now in frontend public folder)
+RUN mkdir -p /app/data/outbox \
              /app/data/inbox \
              /app/data/reports \
              /app/data/audit_logs \
@@ -105,6 +104,10 @@ ENV CONFIG_DIR=/app/config
 # Expose port 10000 (Render's default port)
 EXPOSE 10000
 
+# Copy startup script
+COPY --chown=agentcheck:agentcheck start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Switch to non-root user
 USER agentcheck
 
@@ -112,8 +115,8 @@ USER agentcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
-# Default command - start nginx in background, then uvicorn in foreground
-CMD sh -c "nginx && exec uvicorn api.main:app --host 0.0.0.0 --port 8000"
+# Default command - use startup script
+CMD ["/app/start.sh"]
 
 
 # ---- Development Stage ----

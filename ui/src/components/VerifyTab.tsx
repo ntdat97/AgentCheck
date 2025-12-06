@@ -7,6 +7,7 @@ import {
   XCircle,
   HelpCircle,
   Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import { api } from "../services/api";
 import {
@@ -219,13 +220,19 @@ export default function VerifyTab({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <SampleButton
             onClick={() => handleSampleSelect("certificate_verified")}
+            sampleName="certificate_verified"
             icon={<CheckCircle className="w-4 h-4" />}
             label="Verified Sample"
             color="green"
             disabled={isVerifying}
           />
           <SampleButton
-            onClick={() => handleSampleSelect("certificate_denied")}
+            onClick={() =>
+              handleSampleSelect(
+                "Graduate-Diploma-University-of-Western-Australia"
+              )
+            }
+            sampleName="Graduate-Diploma-University-of-Western-Australia"
             icon={<XCircle className="w-4 h-4" />}
             label="Denied Sample"
             color="red"
@@ -233,6 +240,7 @@ export default function VerifyTab({
           />
           <SampleButton
             onClick={() => handleSampleSelect("certificate_unknown")}
+            sampleName="certificate_unknown"
             icon={<HelpCircle className="w-4 h-4" />}
             label="Unknown Sample"
             color="yellow"
@@ -319,6 +327,7 @@ export default function VerifyTab({
 
 interface SampleButtonProps {
   onClick: () => void;
+  sampleName: string;
   icon: React.ReactNode;
   label: string;
   color: "green" | "red" | "yellow";
@@ -327,6 +336,7 @@ interface SampleButtonProps {
 
 function SampleButton({
   onClick,
+  sampleName,
   icon,
   label,
   color,
@@ -338,6 +348,11 @@ function SampleButton({
     red: "from-rose-100 to-rose-50 border-rose-400 text-rose-600 hover:border-rose-500 hover:bg-rose-100",
     yellow:
       "from-amber-100 to-amber-50 border-amber-400 text-amber-600 hover:border-amber-500 hover:bg-amber-100",
+  };
+
+  const handlePreview = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(`/sample/${sampleName}.pdf`, "_blank");
   };
 
   return (
@@ -353,6 +368,9 @@ function SampleButton({
     >
       {icon}
       <span className="font-medium">{label}</span>
+      <span title="Preview PDF" onClick={handlePreview}>
+        <ExternalLink className="w-4 h-4 ml-1 opacity-60 hover:opacity-100 cursor-pointer" />
+      </span>
     </button>
   );
 }

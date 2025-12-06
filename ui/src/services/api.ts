@@ -148,15 +148,26 @@ class ApiService {
   }
 
   /**
-   * Verify using sample file
+   * Verify using sample file - fetches PDF from public folder and uploads like user file
    */
   async verifySample(
     sampleName: string,
     scenario: SimulationScenario = "verified",
     useFunctionCalling: boolean = false
   ): Promise<VerificationResponse> {
-    const pdfPath = `./data/sample_pdfs/${sampleName}.pdf`;
-    return this.verifyCertificate(pdfPath, scenario, useFunctionCalling);
+    // Fetch the sample PDF from the public folder
+    const response = await fetch(`/sample/${sampleName}.pdf`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sample PDF: ${sampleName}`);
+    }
+
+    const blob = await response.blob();
+    const file = new File([blob], `${sampleName}.pdf`, {
+      type: "application/pdf",
+    });
+
+    // Upload and verify like a normal user file
+    return this.uploadAndVerify(file, scenario, useFunctionCalling);
   }
 }
 
