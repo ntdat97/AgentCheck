@@ -7,14 +7,16 @@ import {
   Menu,
   X,
   Activity,
+  Building2,
 } from "lucide-react";
 import { api } from "./services/api";
 import { ReportSummary, Stats, SimulationScenario } from "./types";
 import VerifyTab from "./components/VerifyTab";
 import ReportsTab from "./components/ReportsTab";
 import AboutTab from "./components/AboutTab";
+import UniversitiesTab from "./components/UniversitiesTab";
 
-type TabType = "verify" | "reports" | "about";
+type TabType = "verify" | "reports" | "about" | "universities";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>("verify");
@@ -92,6 +94,12 @@ function App() {
               onClick={() => setActiveTab("reports")}
               icon={<Search className="w-4 h-4" />}
               label="Reports"
+            />
+            <MobileTabButton
+              active={activeTab === "universities"}
+              onClick={() => setActiveTab("universities")}
+              icon={<Building2 className="w-4 h-4" />}
+              label="Unis"
             />
             <MobileTabButton
               active={activeTab === "about"}
@@ -296,6 +304,13 @@ function App() {
                     fullLabel="View Reports"
                   />
                   <TabButton
+                    active={activeTab === "universities"}
+                    onClick={() => setActiveTab("universities")}
+                    icon={<Building2 className="w-4 h-4" />}
+                    label="Unis"
+                    fullLabel="Universities"
+                  />
+                  <TabButton
                     active={activeTab === "about"}
                     onClick={() => setActiveTab("about")}
                     icon={<Info className="w-4 h-4" />}
@@ -319,6 +334,7 @@ function App() {
               {activeTab === "reports" && (
                 <ReportsTab reports={reports} onRefresh={loadReports} />
               )}
+              {activeTab === "universities" && <UniversitiesTab />}
               {activeTab === "about" && <AboutTab />}
             </div>
           </div>

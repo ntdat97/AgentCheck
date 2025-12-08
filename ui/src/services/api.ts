@@ -169,6 +169,34 @@ class ApiService {
     // Upload and verify like a normal user file
     return this.uploadAndVerify(file, scenario, useFunctionCalling);
   }
+
+  /**
+   * Get list of universities
+   */
+  async getUniversities(): Promise<Record<string, { email: string; country: string; verification_department: string }>> {
+    const response = await this.client.get<{ universities: Record<string, { email: string; country: string; verification_department: string }> }>("/universities");
+    return response.data.universities;
+  }
+
+  /**
+   * Add a new university
+   */
+  async addUniversity(
+    name: string,
+    email: string,
+    country: string = "",
+    verificationDepartment: string = ""
+  ): Promise<{ message: string }> {
+    const response = await this.client.post("/universities", null, {
+      params: {
+        name,
+        email,
+        country,
+        verification_department: verificationDepartment,
+      },
+    });
+    return response.data;
+  }
 }
 
 // Export singleton instance
