@@ -78,11 +78,19 @@ class PDFParser:
         1. Render each PDF page to high-resolution image
         2. Send image to LLM Vision API
         3. Combine extracted text from all pages
+        4. Parse document quality information from Vision response
         """
+        import json
+        
         doc = fitz.open(str(path))
         page_count = len(doc)
         
         extracted_texts = []
+        document_quality = {
+            "confidence": 1.0,
+            "is_damaged": False,
+            "issues": []
+        }
         
         for page_num, page in enumerate(doc):
             # Render page to high-resolution image (2x zoom)
@@ -94,9 +102,35 @@ class PDFParser:
             base64_image = base64.b64encode(img_bytes).decode('utf-8')
             
             # Extract text using Vision API
-            text = self.llm_client.extract_text_from_image(base64_image)
-            if text:
-                extracted_texts.append(text)
+            response = self.llm_client.extract_text_from_image(base64_image)
+            if response:
+                # Try to parse as JSON (new format with quality info)
+                try:
+                    parsed = json.loads(response)
+                    if isinstance(parsed, dict):
+                        # Extract text from JSON response
+                        text = parsed.get("extracted_text", "")
+                        if text:
+                            extracted_texts.append(text)
+                        
+                        # Extract quality info (use lowest confidence across pages)
+                        quality = parsed.get("document_quality", {})
+                        page_confidence = quality.get("confidence", 1.0)
+                        if page_confidence < document_quality["confidence"]:
+                            document_quality["confidence"] = page_confidence
+                        
+                        if quality.get("is_damaged", False):
+                            document_quality["is_damaged"] = True
+                        
+                        page_issues = quality.get("issues", [])
+                        if isinstance(page_issues, list):
+                            document_quality["issues"].extend(page_issues)
+                    else:
+                        # Response is not a dict, use as raw text
+                        extracted_texts.append(response)
+                except json.JSONDecodeError:
+                    # Not JSON, use response as raw text (backward compatible)
+                    extracted_texts.append(response)
         
         doc.close()
         
@@ -108,12 +142,16 @@ class PDFParser:
                 "Please ensure the document is readable and not corrupted."
             )
         
+        # Deduplicate issues
+        document_quality["issues"] = list(set(document_quality["issues"]))
+        
         return {
             "raw_text": raw_text,
             "page_count": page_count,
             "filename": path.name,
             "file_path": str(path),
-            "extraction_method": "vision_api"
+            "extraction_method": "vision_api",
+            "document_quality": document_quality  # NEW: quality info from Vision API
         }
     
     def list_sample_pdfs(self) -> list:

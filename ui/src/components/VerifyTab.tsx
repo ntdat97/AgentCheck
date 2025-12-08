@@ -295,25 +295,24 @@ export default function VerifyTab({
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <SampleButton
-            onClick={() => handleSampleSelect("certificate_verified")}
-            sampleName="certificate_verified"
-            label="Sample 1"
+            onClick={() => handleSampleSelect("generated_sample")}
+            sampleName="generated_sample"
+            label="Generated Sample"
+            variant="blue"
             disabled={isVerifying}
           />
           <SampleButton
-            onClick={() =>
-              handleSampleSelect(
-                "Graduate-Diploma-University-of-Western-Australia"
-              )
-            }
-            sampleName="Graduate-Diploma-University-of-Western-Australia"
-            label="Sample 2"
+            onClick={() => handleSampleSelect("real-certificate")}
+            sampleName="real-certificate"
+            label="Real Certificate"
+            variant="emerald"
             disabled={isVerifying}
           />
           <SampleButton
-            onClick={() => handleSampleSelect("certificate_unknown")}
-            sampleName="certificate_unknown"
-            label="Sample 3"
+            onClick={() => handleSampleSelect("low-quality-damaged")}
+            sampleName="low-quality-damaged"
+            label="Low-Quality/Damaged Scan"
+            variant="amber"
             disabled={isVerifying}
           />
         </div>
@@ -392,6 +391,7 @@ interface SampleButtonProps {
   sampleName: string;
   label: string;
   disabled?: boolean;
+  variant?: "blue" | "emerald" | "amber";
 }
 
 function SampleButton({
@@ -399,20 +399,32 @@ function SampleButton({
   sampleName,
   label,
   disabled,
+  variant = "blue",
 }: SampleButtonProps) {
   const handlePreview = (e: React.MouseEvent) => {
     e.stopPropagation();
     window.open(`/sample/${sampleName}.pdf`, "_blank");
   };
 
+  const getVariantClasses = () => {
+    switch (variant) {
+      case "emerald":
+        return "from-emerald-100 to-emerald-50 border-emerald-400 text-emerald-700 hover:border-emerald-500 hover:bg-emerald-100";
+      case "amber":
+        return "from-amber-100 to-amber-50 border-amber-400 text-amber-700 hover:border-amber-500 hover:bg-amber-100";
+      default: // blue
+        return "from-blue-100 to-blue-50 border-blue-400 text-blue-600 hover:border-blue-500 hover:bg-blue-100";
+    }
+  };
+
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border
-        bg-gradient-to-br from-blue-100 to-blue-50 border-blue-400 text-blue-600
-        hover:border-blue-500 hover:bg-blue-100 transition-all duration-200
-        disabled:opacity-40 disabled:cursor-not-allowed"
+      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border
+        bg-gradient-to-br ${getVariantClasses()}
+        transition-all duration-200
+        disabled:opacity-40 disabled:cursor-not-allowed`}
     >
       <span className="font-medium">{label}</span>
       <span title="Preview PDF" onClick={handlePreview}>

@@ -85,14 +85,38 @@ class DocumentToolsMixin:
             
             response = self.llm.complete_json(prompt)
             
+            # Parse confidence from LLM response (fallback to static values if not provided)
+            extraction_confidence = response.get("extraction_confidence")
+            if extraction_confidence is None:
+                extraction_confidence = CONFIDENCE_SCORE_HIGH if self.llm.is_available() else CONFIDENCE_SCORE_LOW
+            
+            # Parse extraction issues from LLM response
+            extraction_issues = response.get("extraction_issues", [])
+            if not isinstance(extraction_issues, list):
+                extraction_issues = []
+            
             fields = ExtractedFields(
                 candidate_name=response.get("candidate_name"),
                 university_name=response.get("university_name"),
                 degree_name=response.get("degree_name"),
                 issue_date=response.get("issue_date"),
                 raw_text=raw_text,
-                extraction_confidence=CONFIDENCE_SCORE_HIGH if self.llm.is_available() else CONFIDENCE_SCORE_LOW
+                extraction_confidence=extraction_confidence,
+                extraction_issues=extraction_issues
             )
+            
+            # Log warning for low confidence extractions
+            if extraction_confidence < 0.6:
+                self.audit.log_step(
+                    step="extract_fields_low_confidence",
+                    action=f"Low extraction confidence: {extraction_confidence:.2f}. Issues: {extraction_issues}",
+                    tool="extract_fields",
+                    output_data={
+                        "confidence": extraction_confidence,
+                        "issues": extraction_issues,
+                        "is_damaged": response.get("is_damaged", False)
+                    }
+                )
             
             self.audit.log_step(
                 step="extract_fields_complete",
@@ -102,11 +126,14 @@ class DocumentToolsMixin:
                     "candidate_name": fields.candidate_name,
                     "university_name": fields.university_name,
                     "degree_name": fields.degree_name,
-                    "issue_date": fields.issue_date
+                    "issue_date": fields.issue_date,
+                    "extraction_confidence": extraction_confidence,
+                    "extraction_issues": extraction_issues
                 }
             )
             
             return fields
+
         except Exception as e:
             self.audit.log_step(
                 step="extract_fields_error",

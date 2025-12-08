@@ -34,6 +34,11 @@
       "email": "studentrecords@uwa.edu.au",
       "country": "Australia",
       "verification_department": "Student Records Office"
+    },
+    "University of South Australia": {
+      "email": "verifications@unisa.edu.au",
+      "country": "Australia",
+      "verification_department": "Student Services"
     }
   },
   "default_response_time_days": 5,

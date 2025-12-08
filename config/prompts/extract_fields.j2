@@ -8,6 +8,21 @@ Extract the following fields from the certificate text provided. Be precise and 
 3. **degree_name**: The full name of the degree or qualification awarded
 4. **issue_date**: The date the certificate was issued (format: YYYY-MM-DD if possible)
 
+## Quality Assessment (CRITICAL):
+You MUST also assess the extraction quality:
+- **extraction_confidence**: A score from 0.0 to 1.0 indicating how confident you are in the extraction accuracy
+  - 1.0 = Perfect, clear text, no issues
+  - 0.7-0.9 = Minor issues but readable
+  - 0.4-0.6 = Significant issues, some text unclear or partially obscured
+  - 0.0-0.3 = Major issues, text heavily damaged, crossed out, or unreadable
+- **extraction_issues**: List any problems detected (empty array if none). Examples:
+  - "Text appears crossed out or struck through"
+  - "Text is blurry or low resolution"
+  - "Partial text visible, some characters missing"
+  - "Document appears altered or tampered"
+  - "Watermarks or overlays obscuring text"
+- **is_damaged**: Set to true if the document appears damaged, altered, or has quality issues that affect readability
+
 ## Certificate Text:
 {{ certificate_text }}
 
@@ -16,6 +31,8 @@ Extract the following fields from the certificate text provided. Be precise and 
 - Extract names exactly as written (preserve capitalization)
 - For dates, try to normalize to YYYY-MM-DD format
 - Do not make up or infer information that is not explicitly stated
+- If text appears crossed out, struck through, or altered, report LOW confidence and include in extraction_issues
+- Be conservative with confidence - when in doubt, lower the score
 
 ## Output Format:
 Return ONLY a valid JSON object with this exact structure:
@@ -25,7 +42,10 @@ Return ONLY a valid JSON object with this exact structure:
   "candidate_name": "string or null",
   "university_name": "string or null",
   "degree_name": "string or null",
-  "issue_date": "YYYY-MM-DD or null"
+  "issue_date": "YYYY-MM-DD or null",
+  "extraction_confidence": 0.0 to 1.0,
+  "extraction_issues": ["issue1", "issue2"] or [],
+  "is_damaged": true or false
 }
 ```
 

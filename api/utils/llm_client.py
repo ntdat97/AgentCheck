@@ -338,10 +338,40 @@ class LLMClient:
                         "content": [
                             {
                                 "type": "text",
-                                "text": """Extract ALL text from this certificate image. 
-Include every piece of visible text exactly as it appears - names, dates, degree titles, university name, signatures, seals, etc.
-Format the output as plain text, preserving the general layout and hierarchy of information.
-Do not add any commentary or explanations, just extract the raw text content."""
+                                "text": """Analyze this certificate image and extract ALL text content.
+
+## Your Task:
+1. Extract every piece of visible text exactly as it appears - names, dates, degree titles, university name, signatures, seals, etc.
+2. CRITICALLY: Check for visual quality issues and document damage
+
+## Quality Issues to Look For:
+- Text that is crossed out, struck through, or has lines drawn through it
+- Text that has been altered, erased, or written over
+- Blurry, faded, or low resolution text
+- Visible corrections, whiteout, or tampering
+- Watermarks or overlays that obscure text
+- Any signs of document manipulation
+
+## Output Format (JSON):
+Return a JSON object with:
+```json
+{
+  "extracted_text": "all visible text content preserving layout",
+  "document_quality": {
+    "confidence": 0.0 to 1.0,
+    "is_damaged": true or false,
+    "issues": ["list of specific issues found"]
+  }
+}
+```
+
+Confidence scoring:
+- 1.0: Perfect, clear document with no issues
+- 0.7-0.9: Minor issues (slight blur, small marks) but fully readable
+- 0.4-0.6: Significant issues affecting some text readability
+- 0.0-0.3: Major damage, crossed-out text, or alterations detected
+
+IMPORTANT: If you see ANY text that appears crossed out, struck through, or altered, you MUST report it in issues and set is_damaged to true with low confidence."""
                             },
                             {
                                 "type": "image_url",

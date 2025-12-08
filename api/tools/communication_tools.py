@@ -49,6 +49,9 @@ class CommunicationToolsMixin:
         )
         
         try:
+            # Import sender constants
+            from api.constants import SENDER_NAME, SENDER_ORGANIZATION
+            
             prompt = self.prompt_loader.render(
                 "draft_email",
                 candidate_name=extracted_fields.candidate_name,
@@ -57,7 +60,9 @@ class CommunicationToolsMixin:
                 reference_id=reference_id,
                 university_name=recipient.name,
                 department=recipient.verification_department or "Registrar Office",
-                recipient_email=recipient.email
+                recipient_email=recipient.email,
+                sender_name=SENDER_NAME,
+                sender_organization=SENDER_ORGANIZATION
             )
             
             response = self.llm.complete_json(prompt)
@@ -76,6 +81,9 @@ class CommunicationToolsMixin:
             
             return email_content
         except Exception as e:
+            # Import sender constants for fallback
+            from api.constants import SENDER_NAME, SENDER_ORGANIZATION
+            
             # Fallback email
             email_content = {
                 "subject": f"Certificate Verification Request - {reference_id}",
@@ -93,7 +101,8 @@ Please confirm whether this certificate was issued by your institution.
 Thank you for your assistance.
 
 Best regards,
-Verification Officer"""
+{SENDER_NAME}
+{SENDER_ORGANIZATION}"""
             }
             
             self.audit.log_step(

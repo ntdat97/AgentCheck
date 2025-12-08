@@ -213,6 +213,18 @@ class DecisionAgentWithFunctionCalling:
         extracted_fields: ExtractedFields
     ) -> List[Dict[str, str]]:
         """Build the initial conversation messages for the LLM."""
+        # Build extraction quality warning if confidence is not high
+        quality_warning = ""
+        if extracted_fields.extraction_confidence < 0.8:
+            issues_text = ", ".join(extracted_fields.extraction_issues) if extracted_fields.extraction_issues else "general quality concerns"
+            quality_warning = f"""
+## ⚠️ Document Quality Warning
+- Extraction Confidence: {extracted_fields.extraction_confidence:.0%}
+- Issues Detected: {issues_text}
+
+NOTE: Due to document quality issues, the extracted information may be unreliable. 
+Consider this when making your compliance decision and mention any concerns in your explanation."""
+
         user_message = f"""Please analyze this university verification reply and make a compliance decision.
 
 ## Certificate Information
@@ -220,6 +232,7 @@ class DecisionAgentWithFunctionCalling:
 - University: {extracted_fields.university_name}
 - Degree: {extracted_fields.degree_name}
 - Issue Date: {extracted_fields.issue_date}
+{quality_warning}
 
 ## University Reply
 - From: {incoming_email.sender_email} ({incoming_email.sender_name})
