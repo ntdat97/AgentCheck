@@ -166,7 +166,7 @@ python -m api.main report <report-id>
 
 ### University Contacts
 
-University contact information is configured in `config/universities.json`.
+University contact information is configured in `config/universities.json`. You can also add new universities via the UI (**Universities** tab) or API.
 
 ## API Endpoints
 
@@ -179,6 +179,8 @@ University contact information is configured in `config/universities.json`.
 | `GET`  | `/reports`           | List recent reports    |
 | `GET`  | `/reports/{id}`      | Get specific report    |
 | `GET`  | `/reports/{id}/text` | Get report as text     |
+| `GET`  | `/universities`      | List universities      |
+| `POST` | `/universities`      | Add new university     |
 | `GET`  | `/docs`              | Interactive Swagger UI |
 
 ## Testing

@@ -259,6 +259,62 @@ async def upload_pdf(file: UploadFile = File(...)):
     }
 
 
+@app.get("/universities")
+async def list_universities():
+    """List all universities from config."""
+    config_path = Path("./config/universities.json")
+    
+    if not config_path.exists():
+        return {"universities": {}}
+    
+    with open(config_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    return {"universities": data.get("universities", {})}
+
+
+@app.post("/universities")
+async def add_university(
+    name: str,
+    email: str,
+    country: str = "",
+    verification_department: str = ""
+):
+    """Add a new university to config."""
+    config_path = Path("./config/universities.json")
+    
+    # Load existing config or create new
+    if config_path.exists():
+        with open(config_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    else:
+        data = {
+            "universities": {},
+            "default_response_time_days": 5,
+            "retry_attempts": 3
+        }
+    
+    # Add new university
+    data["universities"][name] = {
+        "email": email,
+        "country": country,
+        "verification_department": verification_department
+    }
+    
+    # Save config
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    # Reload orchestrator to pick up new university
+    global orchestrator
+    orchestrator = None
+    
+    return {
+        "message": f"University '{name}' added successfully",
+        "university": data["universities"][name]
+    }
+
+
 # ==================== CLI Interface ====================
 
 def run_cli():
