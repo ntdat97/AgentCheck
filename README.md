@@ -194,80 +194,27 @@ pytest --cov=src --cov-report=html
 pytest tests/test_agents.py -v
 ```
 
-## Workflow Demo
+## Demo Scenarios
 
-### Scenario 1: Verified Certificate
+### Simulation Modes
 
-1. Upload `certificate_verified.pdf`
-2. Agent extracts: John Smith, University of Example, BSc Computer Science
-3. System finds university contact
-4. Drafts verification email
-5. Receives "verified" reply
-6. AI analyzes: **VERIFIED** (95% confidence)
-7. Final decision: **COMPLIANT**
+Select different simulated university responses from the sidebar to test various agent behaviors:
 
-### Scenario 2: Denied Certificate
+| Mode             | Description                                                  | Expected Result                   |
+| :--------------- | :----------------------------------------------------------- | :-------------------------------- |
+| **Verified**     | University confirms the certificate is authentic             | COMPLIANT                         |
+| **Not Verified** | University denies the certificate exists in records          | NOT COMPLIANT                     |
+| **Inconclusive** | University response is unclear or incomplete                 | Requests clarification            |
+| **Suspicious**   | Reply contains fraud indicators or inconsistencies           | Escalates to human reviewer       |
+| **Ambiguous**    | Reply is bureaucratic and non-committal                      | INCONCLUSIVE                      |
+| **Complex Case** | Partial matches + integrity issues + signature discrepancies | Multi-step FC: analyze → escalate |
 
-1. Upload `certificate_denied.pdf`
-2. Agent extracts: Jane Doe, Global Tech Institute, MBA
-3. System finds university contact
-4. Drafts verification email
-5. Receives "not verified" reply
-6. AI analyzes: **NOT_VERIFIED** (90% confidence)
-7. Final decision: **NOT COMPLIANT**
+### Sample PDFs
 
-### Scenario 3: Unknown University
+Three sample certificates demonstrate different input quality scenarios:
 
-1. Upload `certificate_unknown.pdf`
-2. Agent extracts: Alex Johnson, Unknown Academy, Diploma
-3. **No university contact found**
-4. Final decision: **INCONCLUSIVE**
-
-## Sample Output
-
-```
-======================================================================
-COMPLIANCE VERIFICATION REPORT
-======================================================================
-
-Report ID: 550e8400-e29b-41d4-a716-446655440000
-Generated: 2024-12-03T10:30:00
-
-----------------------------------------------------------------------
-FINAL DECISION
-----------------------------------------------------------------------
-Compliance Result: COMPLIANT
-Verification Status: VERIFIED
-
-Explanation:
-COMPLIANT: The certificate has been verified as authentic by the
-issuing university. The university confirmed the certificate is
-authentic. Confidence score: 95%
-
-----------------------------------------------------------------------
-CERTIFICATE INFORMATION
-----------------------------------------------------------------------
-File: certificate_verified.pdf
-Candidate: John Smith
-University: University of Example
-Degree: Bachelor of Science in Computer Science
-Issue Date: 2023-05-15
-
-----------------------------------------------------------------------
-AUDIT TRAIL
-----------------------------------------------------------------------
-✓ [2024-12-03T10:30:00] 001_session_start: Started new verification session
-✓ [2024-12-03T10:30:01] 002_parse_pdf: Parsing PDF file
-✓ [2024-12-03T10:30:02] 003_extract_fields: Extracting structured fields
-✓ [2024-12-03T10:30:03] 004_identify_university: Identifying university
-✓ [2024-12-03T10:30:04] 005_lookup_contact: Looking up contact
-✓ [2024-12-03T10:30:05] 006_draft_email: Generating verification email
-✓ [2024-12-03T10:30:06] 007_send_to_outbox: Email stored in outbox
-✓ [2024-12-03T10:30:07] 008_read_reply: Reading university reply
-✓ [2024-12-03T10:30:08] 009_analyze_reply: Analyzing reply with LLM
-✓ [2024-12-03T10:30:09] 010_decide_compliance: Making compliance decision
-
-======================================================================
-END OF REPORT
-======================================================================
-```
+| Sample                  | Description                                       | Use Case                                        |
+| :---------------------- | :------------------------------------------------ | :---------------------------------------------- |
+| **Generated Sample**    | AI-generated test certificate with fictional data | Quick testing of any simulation mode            |
+| **Real Certificate**    | Authentic University of Western Australia degree  | Demonstrates real-world extraction accuracy     |
+| **Low-Quality/Damaged** | Degraded scan with crossed-out/altered text       | Tests document quality detection and escalation |

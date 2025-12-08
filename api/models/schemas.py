@@ -39,6 +39,7 @@ class ExtractedFields(BaseModel):
     issue_date: Optional[str] = None
     raw_text: Optional[str] = None
     extraction_confidence: float = 0.0
+    extraction_issues: List[str] = Field(default_factory=list)  # Quality issues detected
 
 
 class UniversityContact(BaseModel):

@@ -1,3 +1,9 @@
+<style>
+  body {
+    font-size: 12px;
+  }
+</style>
+
 # Research & Engineering Insight
 
 ## 1. Research Insight
@@ -40,16 +46,17 @@ Function Calling in DecisionAgent compensates for the third point—the system r
 
 ### Tools, Prompts, and Models Structure
 
-**Tools** are organized using a **mixin pattern** (`DocumentToolsMixin`, `CommunicationToolsMixin`, `AnalysisToolsMixin`). Each mixin groups related tools by domain, making the codebase easier to navigate and test independently. **Prompts** are externalized to **Jinja2 templates** (`config/prompts/*.j2`). This separates logic from content—prompts can be modified without code changes, and version-controlled independently. **University Mappings** are config-driven (`config/universities.json`). Adding a new university requires no deployment—just a JSON update.
+**Tools** use a mixin pattern to group domain-specific logic, simplifying code structure. **Prompts** are externalized to **Jinja2 templates** (`config/prompts/*.j2`) for independent versioning. **University Mappings** are config-driven via `config/universities.json`—no code deployment needed for updates.
 
 ### Failure Cases
 
-| Failure               | Handling                                                                     |
-| --------------------- | ---------------------------------------------------------------------------- |
-| PDF unreadable        | LLM Vision API extracts text from rendered images; handles scanned documents |
-| University not found  | Return `INCONCLUSIVE`; flag for manual review                                |
-| Ambiguous/fraud reply | Lower confidence score triggers human review queue                           |
-| LLM hallucination     | Schema validation on all outputs; reject malformed responses                 |
+| Failure                 | Handling                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| PDF unreadable          | LLM Vision API extracts text from rendered images; handles scanned documents         |
+| Low-quality/damaged PDF | Vision API detects visual damage; extraction confidence ≤80% triggers `INCONCLUSIVE` |
+| University not found    | Return `INCONCLUSIVE`; flag for manual review                                        |
+| Ambiguous/fraud reply   | Lower confidence score triggers human review queue                                   |
+| LLM hallucination       | Schema validation on all outputs; reject malformed responses                         |
 
 The decision to use **LLM Vision for all PDFs** (instead of traditional Python PDF readers like PyMuPDF) was deliberate: it avoids arbitrary fallback thresholds and provides consistent handling regardless of PDF type—digital or scanned.
 
@@ -73,7 +80,7 @@ Every tool call creates an `AuditLogEntry` with: timestamp, agent name, tool nam
 
 **Architecture**: `FastAPI → Redis Queue → Celery Workers`. Features include horizontal scaling via worker pool, per-university rate limiting (avoid spam triggers), and dead letter queue for failed verifications.
 
-**Monitoring & Reliability**: Target 30s processing time (SLA); alert if queue exceeds threshold. Retries use exponential backoff (10s → 30s → 60s) for transient failures. Observability via Prometheus metrics on processing time, result distribution, and error rates.
+**Monitoring & Reliability**: Target 30s processing time (SLA); alert if queue exceeds threshold. Retries use exponential backoff (10s → 30s → 60s) for failures. Observability via Prometheus metrics on processing time, result distribution, and error rates.
 
 ---
 
@@ -81,7 +88,7 @@ Every tool call creates an `AuditLogEntry` with: timestamp, agent name, tool nam
 
 ### Data Privacy
 
-Audit logs automatically redact sensitive credentials to prevent leakage. For production, the system will enforce encryption at rest (AES-256) and in transit (TLS 1.3), alongside strict retention policies for GDPR/CCPA compliance.
+Audit logs automatically redact sensitive credentials. Production plans include standard encryption (AES-256, TLS 1.3) and GDPR/CCPA-compliant retention policies.
 
 ### Model Hallucination Risks
 
@@ -89,7 +96,8 @@ Audit logs automatically redact sensitive credentials to prevent leakage. For pr
 | ------------------------- | --------------------------------------------------------------------------------------------- |
 | **Schema Validation**     | Pydantic models validate all LLM outputs to ensure structural integrity                       |
 | **Structured Outputs**    | Function Calling restricts responses to valid enum values, preventing open-ended fabrications |
-| **Confidence Thresholds** | Scores below 0.7 immediately trigger fallback to human review                                 |
+| **Extraction Confidence** | Vision API assesses document quality; confidence ≤80% escalates to human review               |
+| **Decision Confidence**   | Reply analysis scores below 0.7 trigger fallback to human review                              |
 
 ### Traceability
 
@@ -97,4 +105,11 @@ The detailed audit trail allows for complete timeline reconstruction. A unique *
 
 ### Human-in-the-Loop
 
-This architecture prioritizes safety by treating the AI as an **accelerator, not a replacement**. Full automation is strictly reserved for clear-cut success paths. **Automatic Breaks** are triggered for any result marked `INCONCLUSIVE` / `NOT_COMPLIANT`, or any `COMPLIANT` result with low confidence (< 0.7). These edge cases are routed to a **human review queue**, ensuring ambiguity is resolved by human judgment rather than probabilistic guessing. Only high-confidence `COMPLIANT` results are permitted to bypass this safety layer.
+This architecture prioritizes safety by treating the AI as an **accelerator, not a replacement**. Full automation is strictly reserved for clear-cut success paths.
+
+**Automatic Breaks** are triggered at two checkpoints:
+
+1. **Extraction Phase**: Document quality confidence ≤80% immediately returns `INCONCLUSIVE`—damaged or altered documents are flagged before verification proceeds.
+2. **Decision Phase**: Any result marked `INCONCLUSIVE` / `NOT_COMPLIANT`, or `COMPLIANT` with low confidence, is routed to a human review queue.
+
+Only high-confidence extractions from high-quality documents with clear `COMPLIANT` responses bypass this safety layer.

@@ -12,6 +12,7 @@ import {
   ClipboardList,
   CheckCircle,
   XCircle,
+  AlertCircle,
 } from "lucide-react";
 import { ComplianceReport } from "../types";
 
@@ -120,6 +121,14 @@ export default function ResultsDisplay({
                 icon={<Calendar className="w-4 h-4" />}
                 label="Issue Date"
                 value={report.extracted_fields.issue_date}
+              />
+            </div>
+
+            {/* Extraction Confidence Indicator */}
+            <div className="mt-4 pt-3 border-t border-slate-200">
+              <ExtractionConfidenceIndicator
+                confidence={report.extracted_fields.extraction_confidence}
+                issues={report.extracted_fields.extraction_issues}
               />
             </div>
           </div>
@@ -272,7 +281,11 @@ export default function ResultsDisplay({
                 )}
               </div>
               <span className="text-xs text-slate-500 flex-shrink-0">
-                {new Date(entry.timestamp).toLocaleTimeString()}
+                {new Date(
+                  entry.timestamp.endsWith("Z") || entry.timestamp.includes("+")
+                    ? entry.timestamp
+                    : entry.timestamp + "Z"
+                ).toLocaleTimeString()}
               </span>
             </div>
           ))}
@@ -388,6 +401,81 @@ function CollapsibleSection({
       {expanded && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-slate-300/30 pt-4">
           {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ExtractionConfidenceIndicatorProps {
+  confidence: number;
+  issues: string[];
+}
+
+function ExtractionConfidenceIndicator({
+  confidence,
+  issues,
+}: ExtractionConfidenceIndicatorProps) {
+  const percentage = Math.round(confidence * 100);
+
+  const getConfidenceStyle = () => {
+    if (percentage >= 80) {
+      return {
+        bg: "bg-emerald-100",
+        text: "text-emerald-700",
+        bar: "bg-emerald-500",
+        label: "High",
+      };
+    } else if (percentage >= 60) {
+      return {
+        bg: "bg-amber-100",
+        text: "text-amber-700",
+        bar: "bg-amber-500",
+        label: "Medium",
+      };
+    } else {
+      return {
+        bg: "bg-rose-100",
+        text: "text-rose-700",
+        bar: "bg-rose-500",
+        label: "Low",
+      };
+    }
+  };
+
+  const style = getConfidenceStyle();
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-slate-500">Extraction Confidence</span>
+        <span className={`text-sm font-medium ${style.text}`}>
+          {percentage}% ({style.label})
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+        <div
+          className={`h-full rounded-full ${style.bar} transition-all duration-300`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+
+      {/* Issues warning */}
+      {issues && issues.length > 0 && (
+        <div className={`${style.bg} rounded-lg p-3 mt-3`}>
+          <div className={`flex items-start gap-2 ${style.text}`}>
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div>
+              <div className="font-medium text-sm">Document Quality Issues</div>
+              <ul className="text-xs mt-1 space-y-0.5">
+                {issues.map((issue, index) => (
+                  <li key={index}>• {issue}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       )}
     </div>

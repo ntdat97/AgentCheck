@@ -15,26 +15,26 @@ Modern React UI for the AgentCheck certificate verification system.
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 
 # Preview production build
-npm run preview
+pnpm run preview
 ```
 
 ## Development
 
-The development server runs on `http://localhost:3000` and proxies API requests to `http://localhost:8000`.
+The development server runs on `http://localhost:3000`.
 
 Make sure the Python backend is running:
 ```bash
 # From project root
-python -m api.main server
+uvicorn api.main:app --reload
 ```
 
 ## Project Structure
@@ -42,13 +42,15 @@ python -m api.main server
 ```
 ui/
 ├── public/
+│   ├── sample/           # Sample PDFs
 │   └── vite.svg          # Favicon
 ├── src/
 │   ├── components/       # React components
-│   │   ├── VerifyTab.tsx
-│   │   ├── ReportsTab.tsx
+│   │   ├── index.ts
 │   │   ├── AboutTab.tsx
-│   │   └── ResultsDisplay.tsx
+│   │   ├── ReportsTab.tsx
+│   │   ├── ResultsDisplay.tsx
+│   │   └── VerifyTab.tsx
 │   ├── services/
 │   │   └── api.ts        # API client
 │   ├── types/
@@ -61,20 +63,3 @@ ui/
 ├── tsconfig.json
 └── vite.config.ts
 ```
-
-## Features
-
-- 📄 **Upload Certificates** - Drag and drop PDF files
-- 🔍 **Verification Workflow** - Real-time progress display
-- 📊 **Results Dashboard** - Key metrics and detailed breakdown
-- 📧 **Email Trail** - View outgoing requests and university replies
-- 🤖 **AI Analysis** - See how the AI made its decision
-- 📋 **Audit Trail** - Complete log of all actions
-- 💾 **Export Reports** - Download as JSON
-
-## API Proxy
-
-In development mode, API requests are proxied:
-- `/api/*` → `http://localhost:8000/*`
-
-Configure in `vite.config.ts` if needed.

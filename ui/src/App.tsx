@@ -6,7 +6,6 @@ import {
   Settings,
   Menu,
   X,
-  ChevronDown,
   Activity,
 } from "lucide-react";
 import { api } from "./services/api";
@@ -123,9 +122,10 @@ function App() {
         {/* Sidebar */}
         <aside
           className={`
-            fixed lg:sticky top-0 left-0 z-40
+            fixed lg:sticky top-0 left-0 z-50 lg:z-40
             w-72 lg:w-80 h-screen
-            glass-card overflow-y-auto
+            bg-white lg:bg-transparent lg:glass-card overflow-y-auto
+            shadow-xl lg:shadow-none
             transform transition-transform duration-300 ease-out
             ${
               sidebarOpen
@@ -163,30 +163,59 @@ function App() {
               </div>
 
               <div className="glass-light rounded-xl p-4">
-                <label className="block text-sm text-slate-600 mb-2 font-medium">
-                  Simulation Mode
+                <label className="block text-sm text-slate-600 mb-3 font-medium">
+                  University Reply Scenario
                 </label>
-                <div className="relative">
-                  <select
-                    value={scenario}
-                    onChange={(e) =>
-                      setScenario(e.target.value as SimulationScenario)
-                    }
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 appearance-none cursor-pointer transition-all"
-                  >
-                    <option value="verified">✓ Verified</option>
-                    <option value="not_verified">✗ Not Verified</option>
-                    <option value="inconclusive">? Inconclusive</option>
-                    <option value="suspicious">
-                      ⚠ Suspicious (Fraud Test)
-                    </option>
-                    <option value="ambiguous">🔍 Ambiguous (Multi-step)</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                <div className="space-y-2">
+                  <RadioOption
+                    value="verified"
+                    selected={scenario}
+                    onChange={setScenario}
+                    label="Verified"
+                    description="Direct compliance decision"
+                  />
+                  <RadioOption
+                    value="not_verified"
+                    selected={scenario}
+                    onChange={setScenario}
+                    label="Not Verified"
+                    description="Direct non-compliance decision"
+                  />
+                  <RadioOption
+                    value="inconclusive"
+                    selected={scenario}
+                    onChange={setScenario}
+                    label="Inconclusive"
+                    description="Request clarification flow"
+                  />
+                  <RadioOption
+                    value="suspicious"
+                    selected={scenario}
+                    onChange={setScenario}
+                    label="Suspicious"
+                    description="Escalate to human reviewer"
+                  />
+                  <RadioOption
+                    value="ambiguous"
+                    selected={scenario}
+                    onChange={setScenario}
+                    label="Ambiguous"
+                    description="Unclear reply"
+                  />
+                  {/* Ultimate Multi-Iteration Scenario */}
+                  <div className="border-t border-slate-200 pt-2 mt-2">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                      Function Calling Demo
+                    </span>
+                  </div>
+                  <RadioOption
+                    value="complex"
+                    selected={scenario}
+                    onChange={setScenario}
+                    label="Complex Case"
+                    description="Multi-step FC (analyze → escalate)"
+                  />
                 </div>
-                <p className="text-xs text-slate-400 mt-2">
-                  Choose simulated university response
-                </p>
               </div>
             </div>
 
@@ -398,6 +427,55 @@ function MobileTabButton({
       {icon}
       <span>{label}</span>
     </button>
+  );
+}
+
+interface RadioOptionProps {
+  value: SimulationScenario;
+  selected: SimulationScenario;
+  onChange: (value: SimulationScenario) => void;
+  label: string;
+  description: string;
+}
+
+function RadioOption({
+  value,
+  selected,
+  onChange,
+  label,
+  description,
+}: RadioOptionProps) {
+  const isSelected = value === selected;
+  return (
+    <label
+      className={`
+        flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
+        ${
+          isSelected
+            ? "bg-blue-50 border border-blue-300"
+            : "hover:bg-slate-100 border border-transparent"
+        }
+      `}
+    >
+      <input
+        type="radio"
+        name="simulation"
+        value={value}
+        checked={isSelected}
+        onChange={() => onChange(value)}
+        className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+      />
+      <div className="flex-1 min-w-0">
+        <span
+          className={`text-sm font-medium ${
+            isSelected ? "text-blue-700" : "text-slate-700"
+          }`}
+        >
+          {label}
+        </span>
+        <span className="text-xs text-slate-400 ml-2">{description}</span>
+      </div>
+    </label>
   );
 }
 

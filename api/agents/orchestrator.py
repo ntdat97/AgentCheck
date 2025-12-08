@@ -14,6 +14,7 @@ from api.models.schemas import (
     AuditLogEntry,
     ExtractedFields
 )
+from api.constants import EXTRACTION_CONFIDENCE_THRESHOLD
 from api.tools.tools import AgentTools
 from api.services.audit_logger import AuditLogger
 from api.services.compliance import ComplianceService
@@ -129,6 +130,55 @@ class AgentOrchestrator:
             extraction_result = self.extraction_agent.run(pdf_path)
             extracted_fields = extraction_result["extracted_fields"]
             university_name = extraction_result["university_name"]
+            
+            # Check for low-confidence extraction (damaged/low-quality PDF)
+            # Use <= so that exactly threshold value also triggers INCONCLUSIVE
+            if extracted_fields.extraction_confidence <= EXTRACTION_CONFIDENCE_THRESHOLD:
+                self.audit_logger.log_step(
+                    step="low_confidence_extraction",
+                    action=f"Low extraction confidence ({extracted_fields.extraction_confidence:.2f}) - escalating to INCONCLUSIVE",
+                    agent="Orchestrator",
+                    output_data={
+                        "confidence": extracted_fields.extraction_confidence,
+                        "issues": extracted_fields.extraction_issues,
+                        "threshold": EXTRACTION_CONFIDENCE_THRESHOLD
+                    }
+                )
+                
+                # Build user-friendly explanation (technical details shown in Extraction Confidence UI)
+                issues_text = "; ".join(extracted_fields.extraction_issues) if extracted_fields.extraction_issues else "Document quality issues detected"
+                explanation = (
+                    f"INCONCLUSIVE: Document quality is too low for reliable automated verification. "
+                    f"Issues detected: {issues_text}. "
+                    f"This certificate requires manual review by a human analyst."
+                )
+                
+                processing_time = time.time() - start_time
+                audit_logs = self.audit_logger.end_session(
+                    success=True,
+                    final_result={
+                        "compliance_result": ComplianceResult.INCONCLUSIVE.value,
+                        "verification_status": VerificationStatus.INCONCLUSIVE.value,
+                        "reason": "low_extraction_confidence"
+                    }
+                )
+                
+                report = ComplianceReport(
+                    pdf_filename=Path(pdf_path).name,
+                    extracted_fields=extracted_fields,
+                    verification_status=VerificationStatus.INCONCLUSIVE,
+                    compliance_result=ComplianceResult.INCONCLUSIVE,
+                    decision_explanation=explanation,
+                    audit_log=audit_logs,
+                    processing_time_seconds=processing_time,
+                    escalated_to_human=True,
+                    escalation_reason="Low extraction confidence due to document quality issues",
+                    escalation_priority="medium",
+                    risk_indicators=extracted_fields.extraction_issues
+                )
+                
+                self.compliance_service._save_report(report)
+                return report
             
             # ==================== Phase 2: Email ====================
             self.audit_logger.log_step(

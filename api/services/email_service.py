@@ -228,6 +228,78 @@ Thank you for your patience.
 
 Administrative Office
 {university_name}"""
+            },
+            # ===== ULTIMATE COMPLEX SCENARIO FOR MAX FUNCTION CALLING ITERATIONS =====
+            # This scenario combines ALL red flags to force LLM to:
+            # 1. analyze_reply (detect multiple issues)
+            # 2. request_clarification (for partial match issues)
+            # 3. analyze again or escalate_to_human (after seeing all red flags)
+            # Expected: 3-5 iterations before terminal decision
+            "complex": {
+                "body": """Dear Verification Team,
+
+RE: Certificate Verification Request - {reference_id}
+
+Thank you for contacting us. After reviewing our records, I can provide the following information:
+
+═══════════════════════════════════════════════════════════════════
+                    PARTIAL VERIFICATION RESULTS
+═══════════════════════════════════════════════════════════════════
+
+✓ CONFIRMED: A student with a SIMILAR name was enrolled at {university_name}
+✓ CONFIRMED: The student completed a program in the relevant faculty
+✗ DISCREPANCY: The degree title shows "Bachelor of Engineering" but our records show "Bachelor of Science (Engineering Major)" 
+✗ DISCREPANCY: Graduation date differs by 4 months from our records
+✗ DISCREPANCY: Certificate serial number format does not match our standard format for that academic year
+
+═══════════════════════════════════════════════════════════════════
+                    ⚠️ ACADEMIC INTEGRITY NOTICE ⚠️
+═══════════════════════════════════════════════════════════════════
+
+Our Academic Integrity Office has flagged the following concerns in this student's file:
+- A misconduct investigation was opened in 2019 (case #AI-2019-0847)
+- The degree conferral was placed on HOLD for 6 months
+- Resolution status: "Conditionally Resolved - Dean's Discretion"
+- The certificate was RE-ISSUED twice (original 2019, replacement 2020, current 2021)
+
+We cannot confirm which version of the certificate you possess is the currently VALID version.
+
+═══════════════════════════════════════════════════════════════════
+                    SIGNATURE VERIFICATION
+═══════════════════════════════════════════════════════════════════
+
+The signature attributed to "Prof. David Chen, Dean of Engineering" appears INCONSISTENT with our archived specimens. This could be due to:
+a) Document degradation during scanning
+b) Different signature periods (the Dean's signature changed in 2020)
+c) Potential unauthorized modification
+
+We recommend obtaining the original physical certificate for manual signature verification.
+
+═══════════════════════════════════════════════════════════════════
+                    NEXT STEPS
+═══════════════════════════════════════════════════════════════════
+
+Due to the complexity of this case, we NEITHER CONFIRM NOR DENY the authenticity of this specific document at this time.
+
+For expedited resolution, you may:
+1. Contact our Academic Integrity Office directly: integrity@{university_name}.edu
+2. Request a FRESH verification letter through our Premium Verification Portal at verify-academic.net ($95 USD processing fee)
+3. Submit the original physical document for in-person verification
+
+Thank you for your understanding. This case has been assigned internal reference: UI-{reference_id}-REVIEW.
+
+Best regards,
+Dr. Sarah Mitchell
+Senior Verification Specialist
+Academic Records Division
+
+═══════════════════════════════════════════════════════════════════
+This message was sent via SecureVerify™ Enterprise
+Verification Token: #SVT-2024-COMPLEX-{reference_id}
+For questions: records@{university_name}.edu
+═══════════════════════════════════════════════════════════════════"""
+                # NOTE: Sender domain is CORRECT (university domain) to force LLM to analyze content
+                # instead of immediately escalating due to domain mismatch
             }
         }
     

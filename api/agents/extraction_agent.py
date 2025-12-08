@@ -60,6 +60,11 @@ class ExtractionAgent:
         pdf_content = self.tools.parse_pdf(pdf_path)
         raw_text = pdf_content.get("raw_text", "")
         
+        # Get document quality from Vision API (if available)
+        vision_quality = pdf_content.get("document_quality", {})
+        vision_confidence = vision_quality.get("confidence", 1.0)
+        vision_issues = vision_quality.get("issues", [])
+        
         if not raw_text:
             self.audit.log_step(
                 step="extraction_error",
@@ -79,6 +84,29 @@ class ExtractionAgent:
         
         extracted_fields = self.tools.extract_fields(raw_text)
         
+        # Merge Vision API quality with LLM extraction confidence
+        # Use the MINIMUM confidence (most conservative approach for compliance)
+        final_confidence = min(vision_confidence, extracted_fields.extraction_confidence)
+        
+        # Combine issues from both Vision and LLM extraction
+        combined_issues = list(set(vision_issues + extracted_fields.extraction_issues))
+        
+        # Update extracted_fields with merged quality info
+        extracted_fields.extraction_confidence = final_confidence
+        extracted_fields.extraction_issues = combined_issues
+        
+        # Log if Vision detected damage
+        if vision_quality.get("is_damaged", False):
+            self.audit.log_step(
+                step="vision_damage_detected",
+                action=f"Vision API detected document damage: {vision_issues}",
+                agent=self.AGENT_NAME,
+                output_data={
+                    "vision_confidence": vision_confidence,
+                    "vision_issues": vision_issues
+                }
+            )
+        
         # Step 3: Identify university
         self.audit.log_step(
             step="extraction_step_3",
@@ -97,7 +125,9 @@ class ExtractionAgent:
                 "candidate_name": extracted_fields.candidate_name,
                 "university_name": university_name,
                 "degree_name": extracted_fields.degree_name,
-                "issue_date": extracted_fields.issue_date
+                "issue_date": extracted_fields.issue_date,
+                "extraction_confidence": final_confidence,
+                "extraction_issues": combined_issues
             }
         )
         

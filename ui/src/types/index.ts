@@ -26,6 +26,7 @@ export interface ExtractedFields {
   issue_date: string | null;
   raw_text: string | null;
   extraction_confidence: number;
+  extraction_issues: string[]; // Quality issues detected during extraction
 }
 
 export interface UniversityContact {
@@ -127,4 +128,5 @@ export type SimulationScenario =
   | "not_verified"
   | "inconclusive"
   | "suspicious"
-  | "ambiguous";
+  | "ambiguous"
+  | "complex"; // Ultimate multi-iteration scenario (3-5 FC iterations)

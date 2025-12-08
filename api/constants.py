@@ -44,3 +44,13 @@ DEFAULT_MAX_TOKENS = 2000
 CONFIDENCE_SCORE_HIGH = 0.9    # LLM available
 CONFIDENCE_SCORE_MEDIUM = 0.7  # Fallback keyword match
 CONFIDENCE_SCORE_LOW = 0.5     # LLM unavailable or inconclusive
+
+# Extraction quality threshold - at or below this triggers INCONCLUSIVE
+# Set to 0.8 (80%) for strict compliance - only high-confidence extractions proceed
+EXTRACTION_CONFIDENCE_THRESHOLD = 0.8
+
+# ===========================================
+# Sender Information (for outgoing verification emails)
+# ===========================================
+SENDER_NAME = "Dat Nguyen"
+SENDER_ORGANIZATION = "AgentCheck Compliance Services"
