@@ -336,8 +336,8 @@ def run_cli():
 
 def run_verify(args):
     """Run verification from CLI."""
-    print(f"🔍 Verifying certificate: {args.pdf_path}")
-    print(f"📧 Simulation scenario: {args.scenario}")
+    print(f"Verifying certificate: {args.pdf_path}")
+    print(f"Simulation scenario: {args.scenario}")
     print("-" * 50)
     
     orch = create_orchestrator()
@@ -348,11 +348,11 @@ def run_verify(args):
             simulation_scenario=args.scenario
         )
         
-        print(f"\n✅ Verification complete!")
-        print(f"📋 Report ID: {report.id}")
-        print(f"🎯 Compliance Result: {report.compliance_result.value}")
-        print(f"📊 Verification Status: {report.verification_status.value}")
-        print(f"⏱️  Processing Time: {report.processing_time_seconds:.2f}s")
+        print(f"\nVerification complete!")
+        print(f"Report ID: {report.id}")
+        print(f"Compliance Result: {report.compliance_result.value}")
+        print(f"Verification Status: {report.verification_status.value}")
+        print(f"Processing Time: {report.processing_time_seconds:.2f}s")
         
         if args.text:
             print("\n" + "=" * 50)
@@ -361,21 +361,21 @@ def run_verify(args):
         if args.output:
             with open(args.output, 'w') as f:
                 json.dump(report.model_dump(mode='json'), f, indent=2, default=str)
-            print(f"\n💾 Report saved to: {args.output}")
+            print(f"\nReport saved to: {args.output}")
         
     except FileNotFoundError as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
         sys.exit(1)
 
 
 def run_server(args):
     """Start the API server."""
-    print(f"🚀 Starting AgentCheck API server...")
-    print(f"📍 URL: http://{args.host}:{args.port}")
-    print(f"📚 Docs: http://{args.host}:{args.port}/docs")
+    print(f"Starting AgentCheck API server...")
+    print(f"URL: http://{args.host}:{args.port}")
+    print(f"Docs: http://{args.host}:{args.port}/docs")
     
     uvicorn.run(
         "api.main:app",
@@ -390,7 +390,7 @@ def run_list(args):
     orch = create_orchestrator()
     reports = orch.list_reports(args.limit)
     
-    print(f"📋 Recent Reports ({len(reports)} shown)")
+    print(f"Recent Reports ({len(reports)} shown)")
     print("-" * 70)
     
     for r in reports:
@@ -403,7 +403,7 @@ def run_report(args):
     report = orch.get_report(args.report_id)
     
     if not report:
-        print(f"❌ Report not found: {args.report_id}")
+        print(f"Report not found: {args.report_id}")
         sys.exit(1)
     
     if args.text:

@@ -17,10 +17,16 @@ Extract the following fields from the certificate text provided. Be precise and 
 - For dates, try to normalize to YYYY-MM-DD format
 - Do not make up or infer information that is not explicitly stated
 
-Return the extracted information as a JSON object with these exact keys:
-- candidate_name
-- university_name  
-- degree_name
-- issue_date
+## Output Format:
+Return ONLY a valid JSON object with this exact structure:
 
-Only return the JSON object, no additional text.
+```json
+{
+  "candidate_name": "string or null",
+  "university_name": "string or null",
+  "degree_name": "string or null",
+  "issue_date": "YYYY-MM-DD or null"
+}
+```
+
+Do not include any explanation, markdown, or additional text. Return only the raw JSON object.

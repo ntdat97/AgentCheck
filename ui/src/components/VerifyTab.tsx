@@ -42,15 +42,63 @@ export default function VerifyTab({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ComplianceReport | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type === "application/pdf") {
-      setUploadedFile(file);
-      setError(null);
-      setReport(null);
-    } else {
-      setError("Please select a valid PDF file");
+    if (file) {
+      if (file.type === "application/pdf") {
+        setUploadedFile(file);
+        setError(null);
+        setReport(null);
+      } else {
+        setError(
+          "Please select a valid PDF file. Only PDF files are accepted."
+        );
+        setUploadedFile(null);
+      }
+    }
+    // Reset input value to allow re-selecting the same file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+
+    const files = event.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type === "application/pdf") {
+        setUploadedFile(file);
+        setError(null);
+        setReport(null);
+      } else {
+        setError(
+          "Please select a valid PDF file. Only PDF files are accepted."
+        );
+        setUploadedFile(null);
+      }
     }
   };
 
@@ -158,6 +206,14 @@ export default function VerifyTab({
         </p>
       </div>
 
+      {/* Error - moved here for immediate visibility after file selection */}
+      {error && (
+        <div className="mb-4 bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 flex items-start gap-3 section-enter">
+          <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+          <span className="text-rose-600">{error}</span>
+        </div>
+      )}
+
       {/* File Upload Area */}
       <div
         className={`
@@ -165,15 +221,21 @@ export default function VerifyTab({
           ${
             uploadedFile
               ? "border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 to-transparent"
+              : isDragging
+              ? "border-blue-500 bg-gradient-to-br from-blue-500/10 to-transparent border-2"
               : "hover:border-blue-500/50"
           }
         `}
         onClick={() => !uploadedFile && fileInputRef.current?.click()}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf"
+          accept=".pdf,application/pdf"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -200,12 +262,26 @@ export default function VerifyTab({
           </div>
         ) : (
           <div>
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200/50 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-              <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-slate-500" />
+            <div
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 ${
+                isDragging ? "bg-blue-200/50" : "bg-slate-200/50"
+              }`}
+            >
+              <Upload
+                className={`w-8 h-8 sm:w-10 sm:h-10 ${
+                  isDragging ? "text-blue-500" : "text-slate-500"
+                }`}
+              />
             </div>
             <p className="text-slate-600 text-base sm:text-lg mb-2">
-              Drag and drop a PDF file here, or{" "}
-              <span className="text-blue-400 hover:underline">browse</span>
+              {isDragging ? (
+                "Drop your PDF file here"
+              ) : (
+                <>
+                  Drag and drop a PDF file here, or{" "}
+                  <span className="text-blue-400 hover:underline">browse</span>
+                </>
+              )}
             </p>
             <p className="text-sm text-slate-400">Accepts PDF files only</p>
           </div>
@@ -221,9 +297,7 @@ export default function VerifyTab({
           <SampleButton
             onClick={() => handleSampleSelect("certificate_verified")}
             sampleName="certificate_verified"
-            icon={<CheckCircle className="w-4 h-4" />}
-            label="Verified Sample"
-            color="green"
+            label="Sample 1"
             disabled={isVerifying}
           />
           <SampleButton
@@ -233,17 +307,13 @@ export default function VerifyTab({
               )
             }
             sampleName="Graduate-Diploma-University-of-Western-Australia"
-            icon={<XCircle className="w-4 h-4" />}
-            label="Denied Sample"
-            color="red"
+            label="Sample 2"
             disabled={isVerifying}
           />
           <SampleButton
             onClick={() => handleSampleSelect("certificate_unknown")}
             sampleName="certificate_unknown"
-            icon={<HelpCircle className="w-4 h-4" />}
-            label="Unknown Sample"
-            color="yellow"
+            label="Sample 3"
             disabled={isVerifying}
           />
         </div>
@@ -290,14 +360,6 @@ export default function VerifyTab({
         </div>
       )}
 
-      {/* Error */}
-      {error && (
-        <div className="mt-6 bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 flex items-start gap-3 section-enter">
-          <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
-          <span className="text-rose-300">{error}</span>
-        </div>
-      )}
-
       {/* Results */}
       {report && (
         <div className="mt-8 sm:mt-10 section-enter">
@@ -328,28 +390,16 @@ export default function VerifyTab({
 interface SampleButtonProps {
   onClick: () => void;
   sampleName: string;
-  icon: React.ReactNode;
   label: string;
-  color: "green" | "red" | "yellow";
   disabled?: boolean;
 }
 
 function SampleButton({
   onClick,
   sampleName,
-  icon,
   label,
-  color,
   disabled,
 }: SampleButtonProps) {
-  const colorClasses = {
-    green:
-      "from-emerald-100 to-emerald-50 border-emerald-400 text-emerald-600 hover:border-emerald-500 hover:bg-emerald-100",
-    red: "from-rose-100 to-rose-50 border-rose-400 text-rose-600 hover:border-rose-500 hover:bg-rose-100",
-    yellow:
-      "from-amber-100 to-amber-50 border-amber-400 text-amber-600 hover:border-amber-500 hover:bg-amber-100",
-  };
-
   const handlePreview = (e: React.MouseEvent) => {
     e.stopPropagation();
     window.open(`/sample/${sampleName}.pdf`, "_blank");
@@ -359,14 +409,11 @@ function SampleButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`
-        flex items-center justify-center gap-2 px-4 py-3 rounded-xl border
-        bg-gradient-to-br transition-all duration-200
-        disabled:opacity-40 disabled:cursor-not-allowed
-        ${colorClasses[color]}
-      `}
+      className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border
+        bg-gradient-to-br from-blue-100 to-blue-50 border-blue-400 text-blue-600
+        hover:border-blue-500 hover:bg-blue-100 transition-all duration-200
+        disabled:opacity-40 disabled:cursor-not-allowed"
     >
-      {icon}
       <span className="font-medium">{label}</span>
       <span title="Preview PDF" onClick={handlePreview}>
         <ExternalLink className="w-4 h-4 ml-1 opacity-60 hover:opacity-100 cursor-pointer" />

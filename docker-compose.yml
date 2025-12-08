@@ -1,7 +1,7 @@
 # ===========================================
 # AgentCheck Docker Compose Configuration
 # ===========================================
-# 
+#
 # Usage:
 #   Start all:    docker-compose up -d
 #   Build only:   docker-compose build
@@ -21,11 +21,11 @@ services:
       target: production
     container_name: agentcheck
     ports:
-      - "${API_PORT:-8000}:8000"
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:-3000}:3000" # Nginx serves both frontend and proxies API
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5-nano}
+      - PORT=3000 # For local: nginx listens on 3000 (start.sh uses this)
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-groq}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - DATA_DIR=/app/data
       - CONFIG_DIR=/app/config
@@ -35,7 +35,13 @@ services:
       # Mount config for easy updates
       - ./config:/app/config:ro
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -55,10 +61,9 @@ services:
     container_name: agentcheck-dev
     ports:
       - "8000:8000"
-      - "3000:3000"
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5-nano}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-groq}
       - LOG_LEVEL=DEBUG
       - DATA_DIR=/app/data
       - CONFIG_DIR=/app/config

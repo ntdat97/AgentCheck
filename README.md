@@ -1,74 +1,46 @@
 # AgentCheck - AI-Powered Certificate Verification System
 
+<div align="center">
+
+### **[Live Demo](https://agentcheck.onrender.com)** &nbsp;&nbsp;|&nbsp;&nbsp; **[API Documentation](https://agentcheck.onrender.com/docs)**
+
+</div>
+
+---
+
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
 An AI agent system that automates the qualification verification workflow for RegTech compliance. The system uses a multi-agent architecture to extract certificate information, communicate with universities, and make compliance decisions with full audit trails.
 
-## 🎯 Features
+## Architecture
 
-- **Multi-Agent Architecture**: Extraction, Email, and Decision agents working together
-- **PDF Parsing with Vision API**: Extract text from both digital and scanned certificates using LLM Vision
-- **AI-Powered Analysis**: LLM-based field extraction and reply interpretation
-- **Simulated Email Workflow**: Complete email drafting and response simulation
-- **Compliance Decisions**: Automated verification with clear explanations
-- **Full Audit Trail**: Every action logged for compliance requirements
-- **Web UI**: Modern React frontend with TypeScript and Tailwind CSS
-- **REST API**: FastAPI backend for integration
-- **Docker Support**: Production-ready containerization
+![AgentCheck Architecture Diagram](./docs/architecture_diagram.png)
 
-## 🏗️ Architecture
+<div style="page-break-before: always;"></div>
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Orchestrator                              │
-│                   (Coordinates workflow)                         │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        ▼                     ▼                     ▼
-┌───────────────┐    ┌───────────────┐    ┌───────────────┐
-│   Extraction  │    │    Email      │    │   Decision    │
-│     Agent     │    │    Agent      │    │    Agent      │
-├───────────────┤    ├───────────────┤    ├───────────────┤
-│ • parse_pdf   │    │ • lookup_     │    │ • analyze_    │
-│ • extract_    │    │   contact     │    │   reply       │
-│   fields      │    │ • draft_email │    │ • decide_     │
-│ • identify_   │    │ • send_to_    │    │   compliance  │
-│   university  │    │   outbox      │    │               │
-│               │    │ • read_reply  │    │               │
-└───────────────┘    └───────────────┘    └───────────────┘
-        │                     │                     │
-        └─────────────────────┼─────────────────────┘
-                              ▼
-                    ┌───────────────┐
-                    │  Audit Logger │
-                    │  (All steps)  │
-                    └───────────────┘
-```
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 AgentCheck/
-├── config/
-│   ├── universities.json      # University contact mappings
-│   └── prompts/               # Jinja2 prompt templates
-│       ├── extract_fields.j2
-│       ├── draft_email.j2
-│       ├── analyze_reply.j2
-│       └── identify_university.j2
-├── api/                       # Python backend
-│   ├── agents/                # AI Agents
-│   │   ├── orchestrator.py    # Main coordinator
+├── api/                           # Python backend
+│   ├── agents/                    # AI Agents
+│   │   ├── orchestrator.py        # Main coordinator
 │   │   ├── extraction_agent.py
 │   │   ├── email_agent.py
-│   │   └── decision_agent.py
-│   ├── tools/
-│   │   └── tools.py           # Agent tools (9 tools)
+│   │   ├── decision_agent.py
+│   │   └── decision_agent_fc.py   # Function calling variant
+│   ├── tools/                     # Agent tools (modular mixins)
+│   │   ├── base.py
+│   │   ├── definitions.py
+│   │   ├── document_tools.py
+│   │   ├── communication_tools.py
+│   │   ├── analysis_tools.py
+│   │   ├── decision_tools.py
+│   │   └── tools.py               # Combined tools class
 │   ├── models/
-│   │   └── schemas.py         # Pydantic models
+│   │   └── schemas.py             # Pydantic models
 │   ├── services/
 │   │   ├── pdf_parser.py
 │   │   ├── email_service.py
@@ -78,50 +50,55 @@ AgentCheck/
 │   ├── utils/
 │   │   ├── llm_client.py
 │   │   └── prompt_loader.py
-│   └── main.py                # FastAPI app + CLI
-├── ui/                        # React frontend
+│   ├── constants.py
+│   └── main.py                    # FastAPI app + CLI
+├── ui/                            # React frontend
 │   ├── src/
-│   │   ├── components/        # React components
-│   │   ├── services/          # API service layer
-│   │   ├── types/             # TypeScript types
-│   │   ├── App.tsx            # Main app component
-│   │   └── main.tsx           # Entry point
+│   │   ├── components/
+│   │   ├── services/
+│   │   ├── types/
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── public/
 │   ├── package.json
 │   └── vite.config.ts
+├── config/
+│   ├── universities.json          # University contact mappings
+│   └── prompts/                   # Jinja2 prompt templates
 ├── data/
-│   ├── sample_pdfs/           # Sample certificates
-│   ├── outbox/                # Outgoing emails
-│   ├── inbox/                 # University replies
-│   ├── reports/               # Compliance reports
-│   └── audit_logs/            # Audit trails
-├── tests/                     # pytest tests
+│   ├── uploads/                   # Uploaded certificates
+│   ├── outbox/                    # Outgoing emails
+│   ├── inbox/                     # University replies
+│   ├── reports/                   # Compliance reports
+│   ├── queue/                     # Task queue
+│   └── audit_logs/                # Audit trails
+├── docs/
+│   └── architecture_diagram.png
+├── tests/
 ├── Dockerfile
 ├── docker-compose.yml
+├── nginx.conf
 ├── requirements.txt
-├── RESEARCH_INSIGHT.md        # Research & Engineering Document
+├── RESEARCH_INSIGHT.md
 └── README.md
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Option 1: Docker (Recommended)
 
+> Uses a single container with Nginx (serves React) + Uvicorn (Python API) for simpler prototype deployment.
+
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd AgentCheck
-
-# Copy environment file and add your OpenAI API key
+# Copy environment file and add your Groq API key
 cp .env.example .env
-# Edit .env and set OPENAI_API_KEY
+# Edit .env and set GROQ_API_KEY
 
-# Start with Docker Compose
-docker-compose up -d
+# Build and start with Docker Compose
+docker-compose up -d --build
 
-# Access the services:
-# - Frontend: http://localhost:3000
-# - API: http://localhost:8000
-# - API Docs: http://localhost:8000/docs
+# Access the app at http://localhost:3000
+# API Docs at http://localhost:3000/docs
 ```
 
 ### Option 2: Local Development
@@ -141,25 +118,25 @@ pip install -r requirements.txt
 
 # Copy and configure environment
 cp .env.example .env
-# Edit .env and set OPENAI_API_KEY
+# Edit .env and set GROQ_API_KEY
 
-# Run API server (Terminal 1)
-python -m api.main server
+# Run API server
 uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
-
 ```
+
+<div style="page-break-before: always;"></div>
 
 ### Option 3: React Frontend
 
 ```bash
-# Navigate to ui directory (Terminal 2)
+# Navigate to ui directory
 cd ui
 
 # Install Node.js dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm run dev
 
 # Access the UI at http://localhost:3000
 # Make sure the API server is running on port 8000
@@ -187,38 +164,11 @@ python -m api.main list
 python -m api.main report <report-id>
 ```
 
-## 🔧 Configuration
-
-### Environment Variables
-
-| Variable         | Description      | Default       |
-| ---------------- | ---------------- | ------------- |
-| `OPENAI_API_KEY` | OpenAI API key   | Required      |
-| `OPENAI_MODEL`   | LLM model to use | `gpt-4o-mini` |
-| `API_HOST`       | API server host  | `0.0.0.0`     |
-| `API_PORT`       | API server port  | `8000`        |
-| `FRONTEND_PORT`  | React UI port    | `3000`        |
-| `LOG_LEVEL`      | Logging level    | `INFO`        |
-| `DATA_DIR`       | Data directory   | `./data`      |
-| `CONFIG_DIR`     | Config directory | `./config`    |
-
 ### University Contacts
 
-Edit `config/universities.json` to add or modify university contacts:
+University contact information is configured in `config/universities.json`.
 
-```json
-{
-  "universities": {
-    "University Name": {
-      "email": "verification@university.edu",
-      "country": "Country",
-      "verification_department": "Registrar Office"
-    }
-  }
-}
-```
-
-## 📡 API Endpoints
+## API Endpoints
 
 | Method | Endpoint             | Description            |
 | ------ | -------------------- | ---------------------- |
@@ -229,23 +179,9 @@ Edit `config/universities.json` to add or modify university contacts:
 | `GET`  | `/reports`           | List recent reports    |
 | `GET`  | `/reports/{id}`      | Get specific report    |
 | `GET`  | `/reports/{id}/text` | Get report as text     |
+| `GET`  | `/docs`              | Interactive Swagger UI |
 
-### Example API Usage
-
-```bash
-# Verify a certificate
-curl -X POST "http://localhost:8000/verify" \
-  -H "Content-Type: application/json" \
-  -d '{"pdf_path": "./data/sample_pdfs/certificate_verified.pdf", "simulation_scenario": "verified"}'
-
-# Get reports
-curl "http://localhost:8000/reports"
-
-# Get specific report
-curl "http://localhost:8000/reports/<report-id>"
-```
-
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -258,29 +194,7 @@ pytest --cov=src --cov-report=html
 pytest tests/test_agents.py -v
 ```
 
-## 🐳 Docker Commands
-
-```bash
-# Build images
-docker-compose build
-
-# Start services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-
-# Development mode (with hot reload)
-docker-compose --profile dev up dev
-
-# Run tests in container
-docker-compose run --rm api pytest
-```
-
-## 📊 Workflow Demo
+## Workflow Demo
 
 ### Scenario 1: Verified Certificate
 
@@ -290,7 +204,7 @@ docker-compose run --rm api pytest
 4. Drafts verification email
 5. Receives "verified" reply
 6. AI analyzes: **VERIFIED** (95% confidence)
-7. Final decision: **COMPLIANT** ✅
+7. Final decision: **COMPLIANT**
 
 ### Scenario 2: Denied Certificate
 
@@ -300,16 +214,16 @@ docker-compose run --rm api pytest
 4. Drafts verification email
 5. Receives "not verified" reply
 6. AI analyzes: **NOT_VERIFIED** (90% confidence)
-7. Final decision: **NOT COMPLIANT** ❌
+7. Final decision: **NOT COMPLIANT**
 
 ### Scenario 3: Unknown University
 
 1. Upload `certificate_unknown.pdf`
 2. Agent extracts: Alex Johnson, Unknown Academy, Diploma
 3. **No university contact found**
-4. Final decision: **INCONCLUSIVE** ⚠️
+4. Final decision: **INCONCLUSIVE**
 
-## 📝 Sample Output
+## Sample Output
 
 ```
 ======================================================================
@@ -357,30 +271,3 @@ AUDIT TRAIL
 END OF REPORT
 ======================================================================
 ```
-
-## 📖 Documentation
-
-- [Research & Engineering Insight Document](./RESEARCH_INSIGHT.md) - Detailed analysis of design decisions
-- [API Documentation](http://localhost:8000/docs) - Interactive Swagger docs (when running)
-
-## ⚠️ Limitations
-
-- University replies are **simulated** (no real email integration)
-- Limited university database (5 sample universities)
-- LLM required for full functionality (mock mode available)
-
-## 🔮 Future Enhancements
-
-- [ ] Real email integration (SMTP/IMAP)
-- [ ] API integration with university verification services
-- [ ] Human-in-the-loop review workflow
-- [ ] Batch processing support
-- [ ] Advanced analytics dashboard
-
-## 📄 License
-
-MIT License - See LICENSE file for details.
-
----
-
-Built for RegTech compliance automation by AgentCheck.
